@@ -1,18 +1,59 @@
-import React, { useState } from "react";
-import Input from "../../components/Input"; // Adjust the path if needed
+import React, { useContext, useState } from "react";
+import Input from "../../components/Input"; 
+import { UserContext } from "../../context/userContext";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
 
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
 
+  const {updateUser} = useContext(UserContext);
+
+  const navigate = useNavigate();
+
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleLogin = async(e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+
+    if(!form.username){
+      setError("Please enter your username");
+      return;
+    }
+    if(!form.password){
+      setError("Please enter your password");
+      return;
+    }
+    setError(""); 
+
     // Handle login logic here
-    console.log(form); // For debugging/demo
+    
+    try{
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN,{
+        username : form.username,
+        password : form.password
+      });
+
+      const {token,user} = response.data;
+
+      if(token){
+        localStorage.setItem("token", token);
+        updateUser(user);
+        navigate("/dashboard"); // here after loginPage
+      }
+
+    }
+    catch(error){
+      if(error.response && error.response.data.message){
+        setError(error.response.data.message);
+      }
+      else{
+        setError("Something went wrong");
+      }
+    }
   };
 
   return (
@@ -26,9 +67,9 @@ const LoginPage = () => {
           <p className="text-red-500 text-sm text-center mt-3">{error}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleLogin} className="space-y-6 mt-4">
           <Input
-            label="username Address"
+            label="Username"
             id="username"
             value={form.username}
             onChange={handleChange("username")}

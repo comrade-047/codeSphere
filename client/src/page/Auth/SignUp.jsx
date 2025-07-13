@@ -1,16 +1,67 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Input from "../../components/Input";
+import { UserContext } from "../../context/userContext";
+import { validateEmail } from "../../utils/helper";
+import axiosInstance from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
+import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
 
+  const {updateUser} = useContext(UserContext);
+
+  const navigate = useNavigate();
+
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSignUp = async(e) => {
     e.preventDefault();
+
+    if(!form.username){
+      setError("Please enter a valid name");
+      return;
+    }
+
+    if(!validateEmail(form.email)){
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if(!form.password){
+      setError("Please enter a valid email address");
+      return;
+    }
     setError(""); // Clear previous errors
+
+    // signUp api call
+
+    try {
+      const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER,{
+        username : form.username,
+        email : form.email,
+        password : form.password
+      });
+
+      const {token, user} = response.data;
+
+      if(token){
+        localStorage.setItem("token",token);
+        updateUser(user);
+        // localStorage.setItem("user",JSON.stringify(user));
+        navigate("/dashboard");
+      }
+
+    } catch (err) {
+      if(err.response && err.response.data.message){
+        setError(err.response.data.message);
+      }else{
+        setError("Something went wrong");
+      }
+    }
+
     console.log(form); // Demo purpose
   };
 
@@ -25,12 +76,12 @@ const SignupPage = () => {
           <p className="text-red-500 text-sm text-center mt-3">{error}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleSignUp} className="space-y-6 mt-4">
           <Input
-            label="User name"
+            label="Username"
             id="name"
             value={form.username}
-            onChange={handleChange("name")}
+            onChange={handleChange("username")}
             placeholder="Enter username"
             required
           />

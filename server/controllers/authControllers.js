@@ -8,6 +8,7 @@ const generatetoken = (id) => {
 
 // for registering the user
 export const register = async(req, res) => {
+    // console.log("hit register endpoint");
     const {username, email, password} = req.body;
 
     if(!username || !email || !password){
@@ -40,18 +41,18 @@ export const register = async(req, res) => {
 // for login of user
 export const login = async(req, res) => {
     const {username, password} = req.body;
-
+    // console.log(username, password);
     if(!username || !password){
         return res.status(400).json({message : "All fields are required"});
     }
 
     try{
-        const user = await User.findOne({username});
-
+        const user = await User.findOne({username}).select("+password");
+        // console.log(user);
         if(!user || !(await user.comparePassword(password))){
             return res.status(401).json({message : "Invalid Credentials"});
         }
-
+        // console.log(await user.comparePassword(password));
         return res.status(200).json({
             _id : user._id,
             user,
@@ -59,6 +60,6 @@ export const login = async(req, res) => {
         });
     }
     catch(err){
-        return res.status(500).json({message : "Error while loggin " , error : err.message});
+        return res.status(500).json({message : "Error while logging " , error : err.message});
     }
 }
