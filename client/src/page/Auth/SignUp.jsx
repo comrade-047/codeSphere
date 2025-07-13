@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Input from "../../components/Input";
 
 const SignupPage = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (field) => (e) =>
@@ -27,11 +27,11 @@ const SignupPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <Input
-            label="Full Name"
+            label="User name"
             id="name"
-            value={form.name}
+            value={form.username}
             onChange={handleChange("name")}
-            placeholder="Enter your full name"
+            placeholder="Enter username"
             required
           />
 
