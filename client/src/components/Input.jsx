@@ -18,7 +18,7 @@ const Input = ({
       onChange={onChange}
       placeholder={placeholder}
       required={required}
-      className="w-full mt-2 px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className="w-full mt-2 px-4 py-2 border rounded-md shadow-sm outline-none "
     />
   </div>
 );
