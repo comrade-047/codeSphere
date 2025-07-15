@@ -8,7 +8,7 @@ export const getAllProblems = async(req,res) =>{
     try{
         const query = cursor ? {_id : {$lt: cursor}} : {};
 
-        const problems = await Problem.find(query).sort({_id : -1}).limit(parseInt(limit)); // getting the problems within a limit for pagination
+        const problems = await Problem.find(query).sort({_id :1}).limit(parseInt(limit)); // getting the problems within a limit for pagination
 
         const nextCursor = problems.length > 0 ? problems[problems.length - 1]._id : null;
         
@@ -25,6 +25,7 @@ export const getAllProblems = async(req,res) =>{
 
 // controller for fetching problem by id 
 export const getProblemBySlug = async(req,res) => {
+    // console.log("Hit getProblembySlug");
     const {slug} = req.params;
     if(!slug){
         return res.status(400).json("Invalid query");
