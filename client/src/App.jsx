@@ -2,6 +2,8 @@ import { Route, Routes } from "react-router-dom";
 import LoginPage from "./page/Auth/Login";
 import SignupPage from "./page/Auth/SignUp";
 import Home from "./page/Home";
+import UnderConstructionPage from "./components/UnderConstruction";
+import Header from "./components/Header";
 
 function App(){
   return (
@@ -12,10 +14,14 @@ function App(){
     //   <SignupPage/>
     // </div>
     <>
+      <Header/>
       <Routes>
         <Route path="/" element = {<Home/>} />
         <Route path="/login" element = {<LoginPage/>} />
         <Route path="/signup" element = {<SignupPage/>} />
+        <Route path="/problems" element = {<UnderConstructionPage/>}/>
+        <Route path="/contests" element = {<UnderConstructionPage/>}/>
+        <Route path="/discussions" element = {<UnderConstructionPage/>}/>
       </Routes>
     </>
   )

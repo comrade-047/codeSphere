@@ -10,7 +10,6 @@ const  Home = () => {
     const isDashboard = location.pathname.startsWith('/dashboard');
     return (
         <>
-            {!isDashboard && <Header/>}
             <main className="min-h-screen">
                 <Hero/>
                 <Features/>

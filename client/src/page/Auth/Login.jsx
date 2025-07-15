@@ -42,7 +42,7 @@ const LoginPage = () => {
       if(token){
         localStorage.setItem("token", token);
         updateUser(user);
-        navigate("/dashboard"); // here after loginPage
+        navigate("/problems"); // here after loginPage
       }
 
     }

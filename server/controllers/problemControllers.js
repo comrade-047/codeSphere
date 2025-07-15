@@ -1,4 +1,5 @@
 import Problem from "../models/problem.js";
+import TestCase from "../models/testCase.js";
 
 // controller for fetching problems
 export const getAllProblems = async(req,res) =>{
@@ -51,7 +52,7 @@ const slugify = (text) => text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+
 
 // for adding problems in problemset 
 export const addProblem = async(req, res) => {
-    const {title, description, difficulty, tags, testCases} = req.body;
+    const {title, description, difficulty, tags, examples, inputFormat, outputFormat, testCases} = req.body;
 
     if (!title || !description || !difficulty) {
         return res.status(400).json({ message: 'Missing required fields' });
@@ -70,12 +71,27 @@ export const addProblem = async(req, res) => {
             description,
             difficulty,
             tags,
-            testCases
+            examples,
+            inputFormat,
+            outputFormat,
+            createdBy : req.user?._id
         });
 
         await newProblem.save();
+
+        if(Array.isArray(testCases)){
+            const testCaseDocs = testCases.map((tc) => ({
+                problem: newProblem._id,
+                input: tc.input,
+                output: tc.output,
+                hidden: tc.hidden || false,
+            }));
+
+            await TestCase.insertMany(testCaseDocs);
+        }
+
         return res.status(201).json({
-            message : "Problem added successfully",
+            message : "Problem and test cases added successfully",
             newProblem
         });
     }
