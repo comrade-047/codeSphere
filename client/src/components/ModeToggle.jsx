@@ -1,19 +1,27 @@
-import { Moon, Sun } from "lucide-react";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 export function ModeToggle() {
   const [theme, setTheme] = useState("light");
 
-  const handleToggle = (nextTheme) => {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+
+    setTheme(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
+  }, []);
+
+  const handleToggle = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
     setTheme(nextTheme);
-    document.documentElement.className = nextTheme;
+    localStorage.setItem("theme", nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
   };
 
   return (
-    <div className="relative">
-      <button onClick={() => handleToggle(theme === "light" ? "dark" : "light")}>
-        {theme === "light" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
-    </div>
+    <button onClick={handleToggle}>
+      {theme === "dark" ? <Moon /> : <Sun />}
+    </button>
   );
 }
