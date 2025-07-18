@@ -6,6 +6,8 @@ import connectDb from "./config/dbConfig.js";
 
 import authRoutes from "./routes/authRoutes.js"
 import problemRoutes from "./routes/problemRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
+import judgeRoutes from './routes/judgeRoutes.js'
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ connectDb();
 
 app.use('/api/auth',authRoutes);
 app.use('/api/problems', problemRoutes);
+app.use('/api/:username',userRoutes);
+app.use('/api/judge',judgeRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

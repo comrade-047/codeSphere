@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
             const {status} = error.response;
             if(status == 401 || status == 403){
                 // Redirect to login page if unauthorized or forbidden
-                window.location.href('/');
+                // window.location.href = '/';
             }
             else if(status == 500){
                 console.log("Internal Server error", error);

@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User } from 'lucide-react'; // User icon from lucide-react
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User } from 'lucide-react';
 
-const UserIconDropdown = ({ clearUser }) => {
+const UserIconDropdown = ({ clearUser, user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null); // Ref for the dropdown container
+  const navigate = useNavigate();
 
   const handleDropdownToggle = () => {
-    setDropdownOpen(!dropdownOpen); // Toggle dropdown visibility
+    setDropdownOpen((prev) => !prev);
   };
 
   const handleLogout = () => {
-    clearUser(); // Call clearUser function to log out
-    setDropdownOpen(false); // Close the dropdown after logout
+    localStorage.removeItem("token");
+    navigate("/");
+    clearUser();
+    setDropdownOpen(false);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   return (
-    <div className="relative">
-      {/* User icon button */}
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleDropdownToggle}
         className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -24,15 +47,14 @@ const UserIconDropdown = ({ clearUser }) => {
         <User className="w-6 h-6" />
       </button>
 
-      {/* Dropdown menu */}
       {dropdownOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg">
+        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
           <ul>
             <li>
               <Link
-                to="/profile"
+                to={`/${user.username}`}
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                onClick={() => setDropdownOpen(false)} // Close dropdown on profile click
+                onClick={() => setDropdownOpen(false)}
               >
                 Profile
               </Link>

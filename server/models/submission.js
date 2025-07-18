@@ -13,7 +13,7 @@ const submissionSchema = new mongoose.Schema({
     },
     languages : {
         type : String,
-        enum : ['python', 'cpp', 'java', 'js'],
+        enum : ['python', 'cpp', 'java', 'javascript'],
         required : true,
     },
     code : {

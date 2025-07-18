@@ -1,59 +1,23 @@
 import React, { useContext, useState } from "react";
-import Input from "../../components/Input"; 
+import Input from "../../components/Input";
 import { UserContext } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../utils/axiosInstance";
-import { API_PATHS } from "../../utils/apiPaths";
+import { handleLogin } from "../../utils/helper"; // Import the helper function
 
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
 
-  const {updateUser} = useContext(UserContext);
+  const { updateUser } = useContext(UserContext);
 
   const navigate = useNavigate();
 
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
 
-  const handleLogin = async(e) => {
+  const onLoginSubmit = async (e) => {
     e.preventDefault();
-
-    if(!form.username){
-      setError("Please enter your username");
-      return;
-    }
-    if(!form.password){
-      setError("Please enter your password");
-      return;
-    }
-    setError(""); 
-
-    // Handle login logic here
-    
-    try{
-      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN,{
-        username : form.username,
-        password : form.password
-      });
-
-      const {token,user} = response.data;
-
-      if(token){
-        localStorage.setItem("token", token);
-        updateUser(user);
-        navigate("/problems"); // here after loginPage
-      }
-
-    }
-    catch(error){
-      if(error.response && error.response.data.message){
-        setError(error.response.data.message);
-      }
-      else{
-        setError("Something went wrong");
-      }
-    }
+    await handleLogin(form, setError, updateUser, navigate);
   };
 
   return (
@@ -67,7 +31,7 @@ const LoginPage = () => {
           <p className="text-red-500 text-sm text-center mt-3">{error}</p>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6 mt-4">
+        <form onSubmit={onLoginSubmit} className="space-y-6 mt-4">
           <Input
             label="Username"
             id="username"

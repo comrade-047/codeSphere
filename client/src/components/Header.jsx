@@ -8,7 +8,7 @@ const Header = () => {
   const { user, clearUser } = useContext(UserContext); // Accessing user context
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 text-black dark:text-white shadow-sm transition-colors">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
         <Link to="/" className="text-2xl font-extrabold text-blue-600 tracking-tight">
           codeSphere
@@ -30,7 +30,7 @@ const Header = () => {
               {/* ModeToggle */}
               <ModeToggle />
               {/* UserIconDropdown Component */}
-              <UserIconDropdown clearUser={clearUser} />
+              <UserIconDropdown clearUser={clearUser} user={user} />
             </>
           ) : (
             <>

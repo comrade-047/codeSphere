@@ -23,12 +23,24 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
   problemsSolved: {
-    type: Number,
-    default: 0,
+    type: [String],
+    default: []
   },
   contestAttended: {
-    type: Number,
-    default: 0,
+    type: [String],
+    default : []
+  },
+  mobileNumber: {
+    type: String,
+    default: "",
+  },
+  linkedIn: {
+    type: String,
+    default: "",
+  },
+  country: {
+    type: String,
+    default: "",
   },
 }, { timestamps: true });
 

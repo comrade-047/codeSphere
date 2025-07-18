@@ -28,10 +28,12 @@ const problemSchema = new mongoose.Schema({
     examples : [
         {
             input : {
-                type : String
+                type : mongoose.Schema.Types.Mixed,
+                required : true,
             },
             output : {
-                type : String
+                type : mongoose.Schema.Types.Mixed,
+                required : true,
             },
             explaination : {
                 type : String
@@ -64,22 +66,6 @@ const problemSchema = new mongoose.Schema({
         type : Number,
         default : 0,
     },
-    templates : [
-        {
-            cpp : {
-                type : String,
-            },
-            python : {
-                type : String,
-            },
-            java : {
-                type : String,
-            },
-            javaScript : {
-                type : String
-            }
-        }
-    ],
     createdBy : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'User',
