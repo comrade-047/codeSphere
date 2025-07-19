@@ -10,7 +10,7 @@ const languageRunners = {
   python: runPython
 };
 
-export const runCode = async ({ language, code, input }) => {
+export const runLanguages = async ({ language, code, input }) => {
   const run = languageRunners[language];
   if (!run) throw new Error("Unsupported language");
 

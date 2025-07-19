@@ -10,6 +10,7 @@ import {
 import { UserContext } from "../../context/userContext";
 import ProblemDescription from "../../components/Problem/ProblemDescription";
 import EditorSection from "../../components/Problem/EditorSection";
+import InputOutputSection from "../../components/Problem/InputOutputSection";
 
 const templateObj = {
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code here\n    return 0;\n}`,
@@ -27,7 +28,7 @@ const ProblemPage = () => {
   const [rawInput, setRawInput] = useState("");
   const [outputResults, setOutputResults] = useState(null);
 
-  const {user, updateUser} = useContext(UserContext);
+  const { user, updateUser } = useContext(UserContext);
 
   useEffect(() => {
     axiosInstance
@@ -61,21 +62,26 @@ const ProblemPage = () => {
       const res = await axiosInstance.post(API_PATHS.JUDGE(type), payload);
 
       if (type === "run") {
+        const result = res.data.output;
+
         setOutputResults({
           type: "run",
-          output: res.data.output,
+          output: result.success ? result.output : "",
+          error: result.success ? null : result.error?.message || "Unknown error",
         });
       } else {
-        // Check if the response is indicating a failed test case
-        if (res.data.message === "Test case failed") {
+        // type === "submit"
+        const data = res.data;
+
+        if (data.message === "Test case failed") {
           setOutputResults({
-            type: "error",
-            message: `Test case failed on ${res.data.testCase}.\nInput: ${res.data.input}\nExpected:${res.data.expectedOutput}\nActual:${res.data.actualOutput}`,
+            type: "submit",
+            output: null,
+            error: `Test case ${data.testCase} failed\nInput: ${data.input}\nExpected: ${data.expectedOutput}\nActual: ${data.actualOutput}\nError: ${data.error || "N/A"}`,
+            verdict: data.verdict,
           });
         } else {
-          // Accepted or partial success path
-          const verdict = res.data.verdict;
-          if (verdict === "Accepted") {
+          if (data.verdict === "Accepted") {
             const newProblemId = problem._id;
             if (!user.problemsSolved.includes(newProblemId)) {
               updateUser({
@@ -87,22 +93,21 @@ const ProblemPage = () => {
 
           setOutputResults({
             type: "submit",
-            verdict: res.data.verdict,
-            results: res.data.results || [],
+            output: `Submission verdict: ${data.verdict}`,
+            error: null,
+            verdict: data.verdict,
           });
         }
       }
     } catch (err) {
-      // This is for true HTTP/network/backend errors (status >= 400)
       setOutputResults({
         type: "error",
-        message:
-          err?.response?.data?.message ||
-          "Something went wrong. Please try again.",
+        output: null,
+        error:
+          err?.response?.data?.message || "Something went wrong. Please try again.",
       });
     }
   };
-
 
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
@@ -126,40 +131,12 @@ const ProblemPage = () => {
       <Panel>
         <PanelGroup direction="vertical">
           {/* Code Editor */}
-          <EditorSection language={language} setLanguage={setLanguage} code={code} setCode={setCode} handleAction={handleAction} />
+          <EditorSection language={language} setLanguage={setLanguage} code={code} setCode={setCode} handleAction={handleAction} user={user}/>
 
           <PanelResizeHandle className="h-1 bg-gray-300 cursor-row-resize" />
 
           {/* Input / Output Section */}
-          <Panel defaultSize={40} minSize={20}>
-            <div className="h-full bg-white border-t p-4 flex gap-4">
-              <div className="w-1/2">
-                <label className="block font-semibold text-gray-700 mb-1">Custom Input</label>
-                <textarea
-                  rows={6}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
-                  placeholder="Enter raw input like:\n3\n1 2 3\n5"
-                  value={rawInput}
-                  onChange={(e) => setRawInput(e.target.value)}
-                />
-              </div>
-              <div className="w-1/2">
-                <label className="block font-semibold text-gray-700 mb-1">Output</label>
-                <textarea
-                  rows={6}
-                  readOnly
-                  className="w-full border border-gray-300 bg-gray-100 rounded px-3 py-2 text-sm font-mono"
-                  value={
-                    outputResults?.type === "run"
-                      ? outputResults.output
-                      : outputResults?.type === "error"
-                      ? outputResults.message
-                      : ""
-                  }
-                />
-              </div>
-            </div>
-          </Panel>
+          <InputOutputSection setRawInput={setRawInput} rawInput={rawInput} outputResults={outputResults} />
         </PanelGroup>
       </Panel>
     </PanelGroup>
