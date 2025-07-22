@@ -1,5 +1,5 @@
 import path from 'path';
-import { writeTempFile, removeTempDir } from './utils.js';
+import { writeTempFile, removeTempDir } from '../utils.js';
 import { spawn } from 'child_process';
 
 const runPython = async (code, input = "") => {

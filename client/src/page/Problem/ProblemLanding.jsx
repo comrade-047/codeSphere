@@ -91,6 +91,7 @@ const ProblemListPage = () => {
           toggleStatusFilter={(status) =>
             toggleFilter(status, setStatusFilter, statusFilter)
           }
+          user={user}
         />
       </aside>
 

@@ -1,5 +1,5 @@
 import path from 'path';
-import { writeTempFile, removeTempDir } from './utils.js';
+import { writeTempFile, removeTempDir } from '../utils.js';
 import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
 

@@ -7,6 +7,7 @@ const Filters = ({
   setStatusFilter,
   toggleDifficultyFilter,
   toggleStatusFilter,
+  user
 }) => (
   <div>
     <h2 className="text-lg font-semibold mb-4">
@@ -37,7 +38,7 @@ const Filters = ({
     </div>
 
     {/* Status */}
-    <div>
+    {user && <div>
       <h3 className="text-sm font-medium text-gray-600 mb-2">Status</h3>
       <div className="space-y-1 text-sm text-gray-700">
         {["Solved", "Unsolved"].map((status) => (
@@ -55,7 +56,7 @@ const Filters = ({
           </label>
         ))}
       </div>
-    </div>
+    </div>}
   </div>
 );
 

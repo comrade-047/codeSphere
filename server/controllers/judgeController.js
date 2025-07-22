@@ -6,6 +6,7 @@ import runCpp from "../../compiler/runner/runCpp.js";
 import runJs from "../../compiler/runner/runJs.js";
 import runJava from "../../compiler/runner/runJava.js";
 import runPython from "../../compiler/runner/runPython.js";
+import { runLanguages } from "../../compiler/index.js";
 
 export const runCode = async(req, res) => {
     // console.log("hit runCode",req.user?.username);
@@ -15,12 +16,7 @@ export const runCode = async(req, res) => {
         return res.status(400).json({message : "All fields are required"});
     }
     try {
-        let output;
-        if(language === "cpp") output = await runCpp(code,input);
-        else if(language === "javascript") output = await runJs(code,input);
-        else if(language === "java") output = await runJava(code, input);
-        else if(language === "python") output = await runPython(code, input);
-        else return res.status(400).json({message : "Language not supported"});
+        let output = await runLanguages({language,code,input});
 
         // console.log(output);
         return res.status(200).json({output});
@@ -64,12 +60,7 @@ export const submitCode = async (req, res) => {
       let error = null;
 
       try {
-        let result;
-        if (language === "cpp") result = await runCpp(code, input);
-        else if (language === "javascript") result = await runJs(code, input);
-        else if (language === "java") result = await runJava(code, input);
-        else if (language === "python") result = await runPython(code, input);
-        else return res.status(400).json({ message: "Language not supported" });
+        let result = await runLanguages({language,code,input});
 
         actualOutput = result.trim();
       } catch (err) {

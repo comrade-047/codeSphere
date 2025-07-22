@@ -1,7 +1,7 @@
-import runCpp from './runCpp.js';
-import runJava from './runJava.js';
-import runJs from './runJs.js';
-import runPython from './runPython.js';
+import runCpp from './runner/runCpp.js';
+import runJava from './runner/runJava.js';
+import runJs from './runner/runJs.js';
+import runPython from './runner/runPython.js';
 
 const languageRunners = {
   cpp: runCpp,

@@ -79,9 +79,9 @@ const ProfilePage = () => {
       <div className="bg-white shadow-xl rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-6  border border-gray-100">
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl overflow-hidden">
-            {user.avatar?.startsWith("http") ? (
+            {user.profilePicUrl?.startsWith("https") ? (
               <img
-                src={user.avatar}
+                src={user.profilePicUrl}
                 alt="Avatar"
                 className="w-full h-full object-cover rounded-full"
               />

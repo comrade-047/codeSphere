@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false, // hide password by default
   },
+  profilePicUrl : {
+    type : String,
+    default : null
+  },
   role: {
     type: String,
     enum: ["user", "admin"],
