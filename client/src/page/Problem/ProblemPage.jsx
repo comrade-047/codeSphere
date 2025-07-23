@@ -119,28 +119,48 @@ const ProblemPage = () => {
   if (!problem) return <div className="p-8 text-center text-red-500">Problem not found</div>;
 
   return (
-    <PanelGroup direction="horizontal" className="min-h-screen w-screen text-sm bg-gray-100">
+    <PanelGroup
+      direction="horizontal"
+      className="min-h-screen w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors"
+    >
       {/* Sidebar */}
-      <Panel defaultSize={40} minSize={25} maxSize={60}>
-        <ProblemDescription problem={problem} />
+      <Panel
+        defaultSize={40}
+        minSize={25}
+        maxSize={60}
+        className="flex flex-col border-r border-gray-200 dark:border-zinc-700"
+      >
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800">
+          <ProblemDescription problem={problem} />
+        </div>
       </Panel>
 
-      <PanelResizeHandle className="w-1 bg-gray-300 cursor-col-resize" />
+      <PanelResizeHandle className="w-1 bg-gray-300 dark:bg-zinc-700 cursor-col-resize" />
 
       {/* Editor Panel */}
       <Panel>
         <PanelGroup direction="vertical">
-          {/* Code Editor */}
-          <EditorSection language={language} setLanguage={setLanguage} code={code} setCode={setCode} handleAction={handleAction} user={user}/>
+          <EditorSection
+            language={language}
+            setLanguage={setLanguage}
+            code={code}
+            setCode={setCode}
+            handleAction={handleAction}
+            user={user}
+          />
 
-          <PanelResizeHandle className="h-1 bg-gray-300 cursor-row-resize" />
+          <PanelResizeHandle className="h-1 bg-gray-300 dark:bg-zinc-700 cursor-row-resize" />
 
-          {/* Input / Output Section */}
-          <InputOutputSection setRawInput={setRawInput} rawInput={rawInput} outputResults={outputResults} />
+          <InputOutputSection
+            setRawInput={setRawInput}
+            rawInput={rawInput}
+            outputResults={outputResults}
+          />
         </PanelGroup>
       </Panel>
     </PanelGroup>
   );
+
 };
 
 export default ProblemPage;

@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+body {
+  @apply bg-white text-gray-900 dark:bg-zinc-900 dark:text-gray-100;
+}

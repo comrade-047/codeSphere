@@ -1,23 +1,19 @@
-import { useLocation } from "react-router-dom";
-import Hero from "../components/Hero";
-import Testimonial from "../components/Testimonial";
-import Header from "../components/Header";
+import Hero from "../components/Home/Hero";
+import Testimonial from "../components/Home/Testimonial";
 import Footer from "../components/Footer";
-import Features from "../components/Features";
+import Features from "../components/Home/Features";
 
-const  Home = () => {
-    const location = useLocation();
-    const isDashboard = location.pathname.startsWith('/dashboard');
-    return (
-        <>
-            <main className="min-h-screen">
-                <Hero/>
-                <Features/>
-                <Testimonial/>
-            </main>
-            {!isDashboard && <Footer/>}
-        </>
-    )
-}
+const Home = () => {
+  return (
+    <>
+      <main className="min-h-screen bg-white dark:bg-zinc-900 text-black dark:text-white transition-colors">
+        <Hero />
+        <Features />
+        <Testimonial />
+      </main>
+      <Footer />
+    </>
+  );
+};
 
 export default Home;

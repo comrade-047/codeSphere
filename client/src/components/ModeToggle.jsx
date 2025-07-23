@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
+
 export function ModeToggle() {
   const [theme, setTheme] = useState("light");
 
@@ -20,8 +21,11 @@ export function ModeToggle() {
   };
 
   return (
-    <button onClick={handleToggle}>
-      {theme === "dark" ? <Moon /> : <Sun />}
+    <button
+      onClick={handleToggle}
+      className="p-2 rounded text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    >
+      {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
     </button>
   );
 }

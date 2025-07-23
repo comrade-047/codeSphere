@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import Input from "../../components/Input";
 import { UserContext } from "../../context/userContext";
-import { handleSignUp } from "../../utils/helper"; // Import the helper function
+import { handleSignUp } from "../../utils/helper";
 import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
@@ -20,9 +20,9 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-xl">
-        <h2 className="text-2xl font-semibold text-center text-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 flex items-center justify-center">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-xl">
+        <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
           Create Your Account
         </h2>
 
@@ -62,13 +62,13 @@ const SignupPage = () => {
 
           <button
             type="submit"
-            className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none"
+            className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
           >
             Sign Up
           </button>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{" "}
               <a href="/login" className="text-indigo-600 hover:underline">
                 Login
