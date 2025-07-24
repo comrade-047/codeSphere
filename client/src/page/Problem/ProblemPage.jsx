@@ -8,9 +8,9 @@ import {
   PanelResizeHandle,
 } from "react-resizable-panels";
 import { UserContext } from "../../context/userContext";
-import ProblemDescription from "../../components/Problem/ProblemDescription";
 import EditorSection from "../../components/Problem/EditorSection";
 import InputOutputSection from "../../components/Problem/InputOutputSection";
+import ProblemTabs from "../../components/Problem/ProblemTabs";
 
 const templateObj = {
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code here\n    return 0;\n}`,
@@ -27,6 +27,9 @@ const ProblemPage = () => {
   const [code, setCode] = useState("");
   const [rawInput, setRawInput] = useState("");
   const [outputResults, setOutputResults] = useState(null);
+  const [loadingAiReview ,setLoadingAiReview] = useState(false);
+  const [showReviewButton, setShowReviewButton] = useState(false);
+  const [aiReviewModal, setAiReviewModal] = useState({open : false, content : ""});
 
   const { user, updateUser } = useContext(UserContext);
 
@@ -90,7 +93,7 @@ const ProblemPage = () => {
               });
             }
           }
-
+          setShowReviewButton(true);
           setOutputResults({
             type: "submit",
             output: `Submission verdict: ${data.verdict}`,
@@ -109,6 +112,22 @@ const ProblemPage = () => {
     }
   };
 
+  const handleAiReviewRequest = async() => {
+    setLoadingAiReview(true);
+    try{
+      const res = await axiosInstance.post(API_PATHS.AI_REVIEW,{
+        code,
+        language
+      });
+
+      setAiReviewModal({open : true, content : res.data.review});
+    }
+    catch(err){
+      console.log("Failed to fetch AI review",err);
+    }
+    setLoadingAiReview(false);
+  }
+
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
     setLanguage(lang);
@@ -121,24 +140,25 @@ const ProblemPage = () => {
   return (
     <PanelGroup
       direction="horizontal"
-      className="min-h-screen w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors"
+      className="h-screen w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors p-2 "
     >
       {/* Sidebar */}
       <Panel
-        defaultSize={40}
-        minSize={25}
+        defaultSize={45}
+        minSize={35}
         maxSize={60}
-        className="flex flex-col border-r border-gray-200 dark:border-zinc-700"
+        className="flex flex-col  border-gray-200 dark:border-zinc-700"
       >
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800">
-          <ProblemDescription problem={problem} />
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg scroll-smooth">
+          {/* <ProblemDescription problem={problem} /> */}
+          <ProblemTabs problem={problem} isLoggedIn={user} submissions={[]} />
         </div>
       </Panel>
 
-      <PanelResizeHandle className="w-1 bg-gray-300 dark:bg-zinc-700 cursor-col-resize" />
+      <PanelResizeHandle className="resize-handle" />
 
       {/* Editor Panel */}
-      <Panel>
+      <Panel className="rounded-lg ">
         <PanelGroup direction="vertical">
           <EditorSection
             language={language}
@@ -147,9 +167,14 @@ const ProblemPage = () => {
             setCode={setCode}
             handleAction={handleAction}
             user={user}
+            showReviewButton={showReviewButton}
+            handleReviewRequest={handleAiReviewRequest}
+            aiReviewModal={aiReviewModal}
+            setAiReviewModal={setAiReviewModal}
+            loading = {loadingAiReview}
           />
 
-          <PanelResizeHandle className="h-1 bg-gray-300 dark:bg-zinc-700 cursor-row-resize" />
+          <PanelResizeHandle className="horizontal-resize-handle" />
 
           <InputOutputSection
             setRawInput={setRawInput}
@@ -160,7 +185,6 @@ const ProblemPage = () => {
       </Panel>
     </PanelGroup>
   );
-
 };
 
 export default ProblemPage;

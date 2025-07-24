@@ -6,7 +6,16 @@ export const getAllProblems = async(req,res) =>{
     const {cursor, limit = 20} = req.query;
 
     try{
-        const query = cursor ? {_id : {$lt: cursor}} : {};
+        // changed for the contest problem 
+        const now = new Date();
+
+        const query = {
+            ...(cursor && {_id : {$lt : cursor}}),
+            $or : [
+                {hiddenUntil : null},
+                {hiddenUntil : {$lt : now}}
+            ]
+        };
 
         const problems = await Problem.find(query).sort({_id :1}).limit(parseInt(limit)); // getting the problems within a limit for pagination
 
@@ -53,7 +62,7 @@ const slugify = (text) => text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+
 
 // for adding problems in problemset 
 export const addProblem = async(req, res) => {
-    const {title, description, difficulty, tags, examples, inputFormat, outputFormat, testCases} = req.body;
+    const {title, description, difficulty, tags, examples, inputFormat, outputFormat, testCases, hiddenUntil} = req.body;
 
     if (!title || !description || !difficulty) {
         return res.status(400).json({ message: 'Missing required fields' });
@@ -75,6 +84,7 @@ export const addProblem = async(req, res) => {
             examples,
             inputFormat,
             outputFormat,
+            hiddenUntil,
             createdBy : req.user?._id
         });
 

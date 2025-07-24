@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default : []
   },
+  aiUsage : {
+    count : {
+      type : Number,
+      default : 0
+    },
+    lastUsed : {
+      type : Date,
+      default : null
+    }
+  },
   mobileNumber: {
     type: String,
     default: "",

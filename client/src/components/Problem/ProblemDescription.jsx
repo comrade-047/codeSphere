@@ -2,7 +2,7 @@ import React from 'react';
 import { Flame, Tag, GaugeCircle, BarChart3, CircleCheck } from 'lucide-react';
 
 const ProblemDescription = ({ problem }) => (
-  <div className="h-full overflow-y-auto bg-white dark:bg-zinc-800 border-r border-gray-300 dark:border-zinc-700 p-6 text-gray-800 dark:text-gray-100">
+  <div className="h-full overflow-y-auto bg-white dark:bg-zinc-800  border-gray-300 dark:border-zinc-700 p-6 text-gray-800 dark:text-gray-100 rounded-lg">
     <h1 className="text-2xl font-bold mb-2">{problem.title}</h1>
 
     <div className="flex items-center flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300 mb-4">

@@ -2,10 +2,6 @@ import problem from "../models/problem.js";
 import submission from "../models/submission.js";
 import testCase from "../models/testCase.js";
 import User from "../models/user.js";
-import runCpp from "../../compiler/runner/runCpp.js";
-import runJs from "../../compiler/runner/runJs.js";
-import runJava from "../../compiler/runner/runJava.js";
-import runPython from "../../compiler/runner/runPython.js";
 import { runLanguages } from "../../compiler/index.js";
 
 export const runCode = async(req, res) => {
@@ -61,8 +57,11 @@ export const submitCode = async (req, res) => {
 
       try {
         let result = await runLanguages({language,code,input});
-
-        actualOutput = result.trim();
+        if(result.success){
+          // console.log(result)
+          actualOutput = result.output.trim();
+        }
+        
       } catch (err) {
         actualOutput = "";
         error = err.message || "Runtime Error";
