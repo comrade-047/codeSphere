@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ProblemDescription from "./ProblemDescription";
-import MySubmissions from "./MySubmissions";
+import MySubmissions from "../Submissions/MySubmissions";
 import DiscussionSection from "../Discussions/DiscussionSection";
 import { Brain, FileText, MessageSquare } from "lucide-react";
 

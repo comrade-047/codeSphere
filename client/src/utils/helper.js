@@ -97,3 +97,36 @@ export const handleSignUp = async (form, setError, updateUser, navigate) => {
   }
 };
 
+
+// fetch individual problems
+export const fetchProblem = async (slug) => {
+  const res = await axiosInstance.get(API_PATHS.PROBLEM.PROBLEMBYSLUG(slug));
+  const problem = res.data.problem;
+  return { problem };
+};
+
+// fetch userproblem specific submissions
+export const fetchUserSubmissions = async(problemId) => {
+  const res = await axiosInstance.get(API_PATHS.SUBMISSIONS.USERSUBMISSIONSBYPROBLEM(problemId));
+  return res.data.submissions || [];
+}
+
+
+
+export const handleAiReviewRequest = async({
+  code,
+  language,
+  setLoadingAiReview,
+  setAiReviewModal
+}) => {
+  setLoadingAiReview(true);
+
+  try{
+    const res = await axiosInstance.post(API_PATHS.AI_REVIEW, {code, language});
+    setAiReviewModal({ open: true, content: res.data.review });
+  }
+  catch(err){
+    console.error("Failed to fetch AI review", err);
+  }
+  setLoadingAiReview(false);
+}

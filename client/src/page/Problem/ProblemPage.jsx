@@ -11,6 +11,7 @@ import { UserContext } from "../../context/userContext";
 import EditorSection from "../../components/Problem/EditorSection";
 import InputOutputSection from "../../components/Problem/InputOutputSection";
 import ProblemTabs from "../../components/Problem/ProblemTabs";
+import { fetchProblem, fetchUserSubmissions } from "../../utils/helper";
 
 const templateObj = {
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code here\n    return 0;\n}`,
@@ -30,14 +31,15 @@ const ProblemPage = () => {
   const [loadingAiReview ,setLoadingAiReview] = useState(false);
   const [showReviewButton, setShowReviewButton] = useState(false);
   const [aiReviewModal, setAiReviewModal] = useState({open : false, content : ""});
+  const [submissions, setSubmissions] = useState([]);
 
   const { user, updateUser } = useContext(UserContext);
 
   useEffect(() => {
-    axiosInstance
-      .get(API_PATHS.PROBLEM.PROBLEMBYSLUG(slug))
-      .then((res) => {
-        const prob = res.data.problem;
+    const loadProblem = async () => {
+      setLoading(true);
+      try {
+        const { problem: prob } = await fetchProblem(slug);
         setProblem(prob);
 
         const example = prob.examples?.[0];
@@ -48,9 +50,17 @@ const ProblemPage = () => {
         if (templateObj?.[language]) {
           setCode(templateObj[language]);
         }
-      })
-      .catch((err) => console.error("Problem fetch error:", err))
-      .finally(() => setLoading(false));
+
+        const subs = await fetchUserSubmissions(prob._id);
+        setSubmissions(subs);
+      } catch (err) {
+        console.error("Problem fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProblem();
   }, [slug, language]);
 
   const handleAction = async (type) => {
@@ -150,8 +160,7 @@ const ProblemPage = () => {
         className="flex flex-col  border-gray-200 dark:border-zinc-700"
       >
         <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg scroll-smooth">
-          {/* <ProblemDescription problem={problem} /> */}
-          <ProblemTabs problem={problem} isLoggedIn={user} submissions={[]} />
+          <ProblemTabs problem={problem} isLoggedIn={user} submissions={submissions} />
         </div>
       </Panel>
 
