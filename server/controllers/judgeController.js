@@ -2,26 +2,34 @@ import problem from "../models/problem.js";
 import submission from "../models/submission.js";
 import testCase from "../models/testCase.js";
 import User from "../models/user.js";
-import { runLanguages } from "../../compiler/index.js";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const COMPILER_SERVICE_URL = process.env.COMPILER_SERVICE_URL;
+
 
 export const runCode = async(req, res) => {
     // console.log("hit runCode",req.user?.username);
     const {slug, language, code, input} = req.body;
 
-    if(!slug || !language || !code || !input){
-        return res.status(400).json({message : "All fields are required"});
-    }
-    try {
-        let output = await runLanguages({language,code,input});
+  if (!slug || !language || !code || input === undefined) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
-        // console.log(output);
-        return res.status(200).json({output});
-    }
-    catch(err){
-        console.log(err);
-        return res.status(500).json({message : 'Server error'});
-    }
-}
+  try {
+    const { data: result } = await axios.post(
+      `${COMPILER_SERVICE_URL}/run`,
+      { language, code, input }
+    );
+    // console.log(result);
+    return res.status(200).json({ output: result });
+  } catch (err) {
+    console.error(err?.response?.data || err.message);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 
 export const submitCode = async (req, res) => {
   const { slug, language, code } = req.body;
@@ -56,15 +64,19 @@ export const submitCode = async (req, res) => {
       let error = null;
 
       try {
-        let result = await runLanguages({language,code,input});
-        if(result.success){
-          // console.log(result)
+        const { data: result } = await axios.post(
+          `${COMPILER_SERVICE_URL}/run`,
+          { language, code, input }
+        );
+
+        if (result.success) {
           actualOutput = result.output.trim();
+        } else {
+          error = result.error?.message || "Runtime error";
         }
-        
       } catch (err) {
         actualOutput = "";
-        error = err.message || "Runtime Error";
+        error = err?.response?.data?.message || err.message || "Runtime error";
       }
 
       const passed = actualOutput === expectedOutput;
@@ -87,12 +99,11 @@ export const submitCode = async (req, res) => {
         error,
       });
 
-      if (!passed) break; // stopping early to show the failed testCase
+      if (!passed) break;
     }
 
     const verdict = allPassed ? "Accepted" : "Wrong Answer";
 
-    // Always save the submission, even if failed
     const newSubmission = new submission({
       user: user._id,
       problem: foundProblem._id,
@@ -106,7 +117,8 @@ export const submitCode = async (req, res) => {
 
     foundProblem.submissions += 1;
     if (allPassed) foundProblem.successfulSubmissions += 1;
-    foundProblem.acceptanceRate = (foundProblem.successfulSubmissions / foundProblem.submissions) * 100;
+    foundProblem.acceptanceRate =
+      (foundProblem.successfulSubmissions / foundProblem.submissions) * 100;
     await foundProblem.save();
 
     if (allPassed && !user.problemsSolved.includes(foundProblem._id)) {

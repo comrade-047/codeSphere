@@ -1,19 +1,27 @@
-import runCpp from './runner/runCpp.js';
-import runJava from './runner/runJava.js';
-import runJs from './runner/runJs.js';
-import runPython from './runner/runPython.js';
+import express from 'express';
+import cors from 'cors';
+import { runLanguages } from './indexCore.js';
+const app = express();
 
-const languageRunners = {
-  cpp: runCpp,
-  java: runJava,
-  javascript: runJs,
-  python: runPython
-};
+app.use(cors()); // 👈 allow all origins
+app.use(express.json());
 
-export const runLanguages = async ({ language, code, input }) => {
-  const run = languageRunners[language];
-  if (!run) throw new Error("Unsupported language");
+// Test route
+app.post('/run', async (req, res) => {
+  const { language, code, input } = req.body;
 
-  const result = await run(code, input);
-  return result;
-};
+  if (!language || !code || input === undefined) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const result = await runLanguages({ language, code, input });
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Internal compiler error' });
+  }
+});
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => console.log(`Compiler service running on ${PORT}`));
