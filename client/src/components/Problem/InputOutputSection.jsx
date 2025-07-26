@@ -2,7 +2,7 @@ import { Panel } from "react-resizable-panels";
 
 const InputOutputSection = ({ rawInput, setRawInput, outputResults }) => {
   return (
-    <Panel defaultSize={35} minSize={25}>
+    <Panel defaultSize={35} minSize={0} maxSize={100}>
       <div className="h-full bg-white dark:bg-zinc-900 border-t dark:border-zinc-700 p-4 flex flex-col md:flex-row gap-6 overflow-auto">
         {/* Input Area */}
         <div className="w-full md:w-1/2">

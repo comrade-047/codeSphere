@@ -1,10 +1,9 @@
-import React from "react";
-import { Play, UploadCloud } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Play, UploadCloud, X, Code2, FileText } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Panel } from "react-resizable-panels";
 import { useNavigate } from "react-router-dom";
 import Modal from "../Modal";
-import { useState } from "react";
 
 const EditorSection = ({
   language,
@@ -18,8 +17,17 @@ const EditorSection = ({
   setAiReviewModal,
   loading,
   user,
+  readOnlysubmission,
+  setReadOnlySubmission,
 }) => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("solution");
+
+  useEffect(() => {
+    if (readOnlysubmission) {
+      setActiveTab("readonly");
+    }
+  }, [readOnlysubmission]);
 
   const requireLogin = () => {
     if (!user) {
@@ -33,17 +41,58 @@ const EditorSection = ({
   return (
     <Panel
       defaultSize={65}
-      minSize={60}
-      maxSize={70}
+      minSize={0}
+      maxSize={100}
       className="relative border border-gray-200 dark:border-zinc-700 rounded-lg overflow-hidden flex flex-col"
     >
-      <div className="flex justify-between items-center px-4 py-[11px] bg-gray-100 dark:bg-zinc-900 border-b dark:border-zinc-700">
-        <div className="flex items-center gap-2">
+      {/* Top Tabs */}
+      <div className="flex border-b border-gray-300 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-900">
+        <button
+          onClick={() => setActiveTab("solution")}
+          className={`px-4 py-[10px] text-sm font-medium flex items-center gap-1 ${
+            activeTab === "solution"
+              ? "text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-zinc-800"
+              : "text-gray-600 hover:text-blue-500 dark:text-gray-300"
+          }`}
+        >
+          <Code2 size={16} />
+          Code
+        </button>
+
+        {readOnlysubmission && (
+          <div className="flex items-center">
+            <button
+              onClick={() => setActiveTab("readonly")}
+              className={`relative px-4 py-[10px] text-sm font-medium flex items-center gap-1 ${
+                activeTab === "readonly"
+                  ? "text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-zinc-800"
+                  : "text-gray-600 hover:text-blue-500 dark:text-gray-300"
+              }`}
+            >
+              <FileText size={16} />
+              {readOnlysubmission.verdict}
+            </button>
+            <button
+              onClick={() => {
+                setReadOnlySubmission(null);
+                setActiveTab("solution");
+              }}
+              className="text-gray-400 px-1"
+              title="Close submission"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Language selector */}
+      {activeTab === "solution" && (
+        <div className="flex justify-between items-center px-4 py-1 bg-gray-100 dark:bg-zinc-900 border-b dark:border-zinc-700">
           <select
-            id="lang-select"
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="px-3 text-sm bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-100 rounded-md focus:outline-none"
+            onChange={setLanguage}
+            className="px-3 py-1 text-sm bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-100 rounded-md focus:outline-none"
           >
             <option value="cpp">C++</option>
             <option value="python">Python</option>
@@ -51,23 +100,42 @@ const EditorSection = ({
             <option value="java">Java</option>
           </select>
         </div>
+      )}
+
+      {/* Editor view */}
+      <div className="flex-1">
+        {activeTab === "solution" && (
+          <Editor
+            language={language}
+            value={code}
+            onChange={(val) => setCode(val || "")}
+            theme="vs-dark"
+            height="100%"
+            options={{
+              fontSize: 14,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            }}
+          />
+        )}
+
+        {activeTab === "readonly" && readOnlysubmission && (
+          <Editor
+            language={readOnlysubmission.languages}
+            value={readOnlysubmission.code}
+            theme="vs-dark"
+            height="100%"
+            options={{
+              fontSize: 14,
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            }}
+          />
+        )}
       </div>
 
-      {/* Monaco Editor */}
-      <Editor
-        language={language}
-        value={code}
-        onChange={(val) => setCode(val || "")}
-        theme="vs-dark"
-        height="100%"
-        options={{
-          fontSize: 14,
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-        }}
-      />
-
-      {/* Buttons: bottom-right corner, float inside panel */}
+      {/* Bottom buttons */}
       <div className="absolute bottom-3 right-3 z-10 flex gap-2">
         {showReviewButton && (
           <button

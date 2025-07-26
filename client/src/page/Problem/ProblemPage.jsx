@@ -32,6 +32,7 @@ const ProblemPage = () => {
   const [showReviewButton, setShowReviewButton] = useState(false);
   const [aiReviewModal, setAiReviewModal] = useState({open : false, content : ""});
   const [submissions, setSubmissions] = useState([]);
+  const [readOnlySubmission, setReadOnlySubmission] = useState(null);
 
   const { user, updateUser } = useContext(UserContext);
 
@@ -47,10 +48,6 @@ const ProblemPage = () => {
           setRawInput(example.input);
         }
 
-        if (templateObj?.[language]) {
-          setCode(templateObj[language]);
-        }
-
         const subs = await fetchUserSubmissions(prob._id);
         setSubmissions(subs);
       } catch (err) {
@@ -61,7 +58,18 @@ const ProblemPage = () => {
     };
 
     loadProblem();
-  }, [slug, language]);
+  }, [slug]);
+
+  useEffect(() => {
+    if (!readOnlySubmission) {
+      setCode(templateObj[language] || "");
+    }
+  }, [language, readOnlySubmission]);
+
+  const handleLanguageChange = (e) => {
+    const lang = e.target.value;
+    setLanguage(lang);
+  };
 
   const handleAction = async (type) => {
     setOutputResults({ loading: true });
@@ -138,12 +146,6 @@ const ProblemPage = () => {
     setLoadingAiReview(false);
   }
 
-  const handleLanguageChange = (e) => {
-    const lang = e.target.value;
-    setLanguage(lang);
-    setCode(templateObj[lang] || "");
-  };
-
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!problem) return <div className="p-8 text-center text-red-500">Problem not found</div>;
 
@@ -152,15 +154,14 @@ const ProblemPage = () => {
       direction="horizontal"
       className="h-screen w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors p-2 "
     >
-      {/* Sidebar */}
-      <Panel
-        defaultSize={45}
-        minSize={35}
-        maxSize={60}
-        className="flex flex-col  border-gray-200 dark:border-zinc-700"
-      >
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg scroll-smooth">
-          <ProblemTabs problem={problem} isLoggedIn={user} submissions={submissions} />
+      <Panel defaultSize={45} minSize={35} maxSize={60} className="flex flex-col">
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg">
+          <ProblemTabs
+            problem={problem}
+            isLoggedIn={user}
+            submissions={submissions}
+            setSelectedSubmission={(sub) => setReadOnlySubmission(sub)}
+          />
         </div>
       </Panel>
 
@@ -171,7 +172,7 @@ const ProblemPage = () => {
         <PanelGroup direction="vertical">
           <EditorSection
             language={language}
-            setLanguage={setLanguage}
+            setLanguage={handleLanguageChange}
             code={code}
             setCode={setCode}
             handleAction={handleAction}
@@ -181,6 +182,8 @@ const ProblemPage = () => {
             aiReviewModal={aiReviewModal}
             setAiReviewModal={setAiReviewModal}
             loading = {loadingAiReview}
+            readOnlysubmission={readOnlySubmission}
+            setReadOnlySubmission={setReadOnlySubmission}
           />
 
           <PanelResizeHandle className="horizontal-resize-handle" />

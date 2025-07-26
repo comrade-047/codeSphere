@@ -4,7 +4,7 @@ import MySubmissions from "../Submissions/MySubmissions";
 import DiscussionSection from "../Discussions/DiscussionSection";
 import { Brain, FileText, MessageSquare } from "lucide-react";
 
-export default function ProblemTabs({ problem, submissions, isLoggedIn }) {
+export default function ProblemTabs({ problem, submissions, isLoggedIn, setSelectedSubmission }) {
   const [activeTab, setActiveTab] = useState("problem");
 
   const tabs = [
@@ -39,7 +39,7 @@ export default function ProblemTabs({ problem, submissions, isLoggedIn }) {
       <div className="flex-1 overflow-y-auto px-2 py-2">
         {activeTab === "problem" && <ProblemDescription problem={problem} />}
         {activeTab === "submissions" && (
-          <MySubmissions submissions={submissions} isLoggedIn={isLoggedIn} />
+          <MySubmissions submissions={submissions} isLoggedIn={isLoggedIn} setSelectedSubmission={setSelectedSubmission} />
         )}
         {activeTab === "discussion" && (
           <DiscussionSection isLoggedIn={isLoggedIn} />

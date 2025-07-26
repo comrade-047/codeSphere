@@ -18,7 +18,7 @@ const ProblemRow = ({ problem, index }) => {
       <td className="px-4 py-2">
         <Link
           to={`/problems/${problem.slug}`}
-          className="text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-blue-600 dark:text-blue-400 "
         >
           {problem.title}
         </Link>
