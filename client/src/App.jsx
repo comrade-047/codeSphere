@@ -8,6 +8,8 @@ import ProblemLandingPage from "./page/Problem/ProblemLanding";
 import ProblemPage from "./page/Problem/ProblemPage";
 import ProfilePage from "./page/User/Profile";
 import UpdateProfile from "./page/User/UpdateProfile";
+import ForgotPasswordPage from "./page/Auth/ForgotPassword";
+import ResetPasswordPage from "./page/Auth/ResetPasswordPage";
 
 function App(){
   return (
@@ -23,11 +25,14 @@ function App(){
         <Route path="/" element = {<Home/>} />
         <Route path="/login" element = {<LoginPage/>} />
         <Route path="/signup" element = {<SignupPage/>} />
+        <Route path="/forgot-password" element = {<ForgotPasswordPage/>}/>
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/problems" element = {<ProblemLandingPage/>}/>
         <Route path="/problems/:slug" element = {<ProblemPage/>}/>
         <Route path="/:username" element = {<ProfilePage/>} />
         <Route path="/:username/update" element = {<UpdateProfile/>} />
         <Route path="/contests" element = {<UnderConstructionPage/>}/>
+
         <Route path="/discussions" element = {<UnderConstructionPage/>}/>
       </Routes>
     </>
