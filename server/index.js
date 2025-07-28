@@ -8,7 +8,6 @@ import authRoutes from "./routes/authRoutes.js"
 import problemRoutes from "./routes/problemRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import judgeRoutes from './routes/judgeRoutes.js'
-import contestRoutes from "./routes/contestRoutes.js"
 import aiReviewRoute from "./routes/aiReveiwRoute.js"
 import submissionRoutes from "./routes/submissionRoutes.js"
 
