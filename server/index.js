@@ -8,6 +8,9 @@ import authRoutes from "./routes/authRoutes.js"
 import problemRoutes from "./routes/problemRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import judgeRoutes from './routes/judgeRoutes.js'
+import contestRoutes from "./routes/contestRoutes.js"
+import aiReviewRoute from "./routes/aiReveiwRoute.js"
+import submissionRoutes from "./routes/submissionRoutes.js"
 
 dotenv.config();
 
@@ -32,8 +35,11 @@ connectDb();
 
 app.use('/api/auth',authRoutes);
 app.use('/api/problems', problemRoutes);
-app.use('/api/:username',userRoutes);
 app.use('/api/judge',judgeRoutes);
+app.use('/api/ai-review',aiReviewRoute);
+app.use('/api/submissions',submissionRoutes);
+// this dynamic route should be in end becuase it might intercept other requests too
+app.use('/api/:username',userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

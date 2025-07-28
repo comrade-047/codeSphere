@@ -44,3 +44,5 @@ server/.env
 
 # Misc
 *.log
+
+compiler-service.pem
