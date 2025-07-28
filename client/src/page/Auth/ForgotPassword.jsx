@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import Input from "../../components/Input";
+import { Link } from "react-router-dom";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -61,12 +62,12 @@ const ForgotPasswordPage = () => {
         </form>
 
         <div className="mt-6 text-center">
-          <a
-            href="/login"
+          <Link
+            to="/login"
             className="text-sm text-indigo-600 hover:underline"
           >
             Back to Login
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import Input from "../../components/Input";
 import { UserContext } from "../../context/userContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { handleLogin } from "../../utils/helper"; // Import the helper function
 
 const LoginPage = () => {
@@ -59,12 +59,12 @@ const LoginPage = () => {
               />
               Remember me
             </label>
-            <a
-              href="/forgot-password"
+            <Link
+              to="/forgot-password"
               className="text-indigo-600 hover:underline"
             >
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           <button

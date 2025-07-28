@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import Input from "../../components/Input";
@@ -69,9 +69,9 @@ const ResetPasswordPage = () => {
         </form>
 
         <div className="mt-6 text-center">
-          <a href="/login" className="text-sm text-indigo-600 hover:underline">
+          <Link to="/login" className="text-sm text-indigo-600 hover:underline">
             Back to Login
-          </a>
+          </Link>
         </div>
       </div>
     </div>
