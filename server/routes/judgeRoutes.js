@@ -1,10 +1,11 @@
 import express from "express";
 import { protect } from "../Middleware/authMiddleware.js";
-import {runCode, submitCode} from "../controllers/judgeController.js"
+import {getRunStatus, runCode, submitCode} from "../controllers/judgeController.js"
 
 const router = express.Router();
 
 router.post('/run',protect,runCode);
 router.post('/submit',protect,submitCode);
+router.get('/run/status/:runId',protect, getRunStatus);
 
 export default router;

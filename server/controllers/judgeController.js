@@ -1,37 +1,58 @@
 import problem from "../models/problem.js";
 import submission from "../models/submission.js";
-import testCase from "../models/testCase.js";
+import { submissionQueue, runQueue } from "../config/queueConfig.js";
 import User from "../models/user.js";
-import axios from "axios";
-import dotenv from "dotenv";
+import { v4 as uuidv4 } from "uuid";
+import { redisClient } from "../config/redisConfig.js";
 
-dotenv.config();
-
-const COMPILER_SERVICE_URL = process.env.COMPILER_SERVICE_URL;
-
-
-export const runCode = async(req, res) => {
-    // console.log("hit runCode",req.user?.username);
-    const {slug, language, code, input} = req.body;
+export const runCode = async (req, res) => {
+  const { slug, language, code, input } = req.body;
 
   if (!slug || !language || !code || input === undefined) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    const { data: result } = await axios.post(
-      `${COMPILER_SERVICE_URL}/run`,
-      { language, code, input }
-    );
-    // console.log(result);
-    return res.status(200).json({ output: result });
+    const runId = uuidv4();
+
+    await runQueue.add("run-job", {
+      runId,
+      code,
+      language,
+      input,
+    });
+
+    return res.status(202).json({
+      message: "Code is being executed.",
+      runId: runId,
+    });
   } catch (err) {
-    console.error(err?.response?.data || err.message);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
+  }
+};
+
+export const getRunStatus = async (req, res) => {
+  // console.log("hit get status");
+  const { runId } = req.params;
+  try {
+    const result = await redisClient.get(`run-result:${runId}`);
+    if (result) {
+      return res
+        .status(200)
+        .json({ status: "completed", ...JSON.parse(result) });
+    } else {
+      return res.status(200).json({ status: "processing" });
+    }
+  } catch (err) {
+    return res.status(500).json({ message: "Error fetching run status" });
   }
 };
 
 export const submitCode = async (req, res) => {
+  // console.log("hit sumbit");
   const { slug, language, code } = req.body;
   const username = req.user.username;
 
@@ -50,95 +71,27 @@ export const submitCode = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const testCases = await testCase.find({ problem: foundProblem._id });
-
-    let allPassed = true;
-    let detailedResults = [];
-    let failedTestCase = null;
-
-    for (let i = 0; i < testCases.length; i++) {
-      const input = testCases[i].input;
-      const expectedOutput = testCases[i].output.trim();
-
-      let actualOutput = "";
-      let error = null;
-
-      try {
-        const { data: result } = await axios.post(
-          `${COMPILER_SERVICE_URL}/run`,
-          { language, code, input }
-        );
-
-        if (result.success) {
-          actualOutput = result.output.trim();
-        } else {
-          error = result.error?.message || "Runtime error";
-        }
-      } catch (err) {
-        actualOutput = "";
-        error = err?.response?.data?.message || err.message || "Runtime error";
-      }
-
-      const passed = actualOutput === expectedOutput;
-      if (!passed && failedTestCase === null) {
-        failedTestCase = {
-          testCase: i + 1,
-          input,
-          expectedOutput,
-          actualOutput,
-          error,
-        };
-        allPassed = false;
-      }
-
-      detailedResults.push({
-        input,
-        expectedOutput,
-        actualOutput,
-        passed,
-        error,
-      });
-
-      if (!passed) break;
-    }
-
-    const verdict = allPassed ? "Accepted" : "Wrong Answer";
-
     const newSubmission = new submission({
       user: user._id,
       problem: foundProblem._id,
       languages: language,
       code,
-      verdict,
-      testResults: detailedResults,
+      verdict: "Pending",
     });
 
     await newSubmission.save();
 
-    foundProblem.submissions += 1;
-    if (allPassed) foundProblem.successfulSubmissions += 1;
-    foundProblem.acceptanceRate =
-      (foundProblem.successfulSubmissions / foundProblem.submissions) * 100;
-    await foundProblem.save();
+    await submissionQueue.add("submission-job", {
+      submissionId: newSubmission._id,
+      code,
+      language,
+      problemId: foundProblem._id,
+      userId: user._id,
+    });
 
-    if (allPassed && !user.problemsSolved.includes(foundProblem._id)) {
-      user.problemsSolved.push(foundProblem._id);
-      await user.save();
-    }
-
-    if (!allPassed && failedTestCase) {
-      return res.status(200).json({
-        message: "Test case failed",
-        verdict,
-        ...failedTestCase,
-        results: detailedResults,
-      });
-    }
-
-    return res.status(200).json({
-      message: "Submission evaluated",
-      verdict,
-      results: detailedResults,
+    return res.status(202).json({
+      message: "Submission received and is being processed.",
+      submissionId: newSubmission._id,
     });
   } catch (err) {
     console.error(err);

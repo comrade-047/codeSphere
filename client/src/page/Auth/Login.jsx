@@ -89,3 +89,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+// add loader after making the call every where it should be consistent

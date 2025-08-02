@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Play, UploadCloud, X, Code2, FileText } from "lucide-react";
+import {
+  Play,
+  UploadCloud,
+  X,
+  Code2,
+  FileText,
+  LoaderCircle,
+} from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Panel } from "react-resizable-panels";
 import { useNavigate } from "react-router-dom";
@@ -15,10 +22,11 @@ const EditorSection = ({
   handleReviewRequest,
   aiReviewModal,
   setAiReviewModal,
-  loading,
+  loadingAiReview,
   user,
   readOnlysubmission,
   setReadOnlySubmission,
+  isProcessing,
 }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("solution");
@@ -139,27 +147,52 @@ const EditorSection = ({
       <div className="absolute bottom-3 right-3 z-10 flex gap-2">
         {showReviewButton && (
           <button
-          onClick={() => requireLogin() && handleReviewRequest()}
-          disabled = {loading}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-        >
-          Ai review
-        </button>
+            onClick={() => requireLogin() && handleReviewRequest()}
+            disabled={loadingAiReview}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 transition disabled:bg-purple-400"
+          >
+            {loadingAiReview ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              "AI Review"
+            )}
+          </button>
         )}
-        <button
-          onClick={() => requireLogin() && handleAction("run")}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-          <Play size={16} /> Run
-        </button>
-        <button
-          onClick={() => requireLogin() && handleAction("submit")}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-        >
-          <UploadCloud size={16} /> Submit
-        </button>
+        {isProcessing ? (
+          <button
+            disabled
+            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gray-500 text-white rounded-md cursor-not-allowed"
+          >
+            <LoaderCircle size={16} className="animate-spin" />
+            Processing...
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => requireLogin() && handleAction("run")}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            >
+              <Play size={16} />
+              Run
+            </button>
+            <button
+              onClick={() => requireLogin() && handleAction("submit")}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+            >
+              <UploadCloud size={16} />
+              Submit
+            </button>
+          </>
+        )}
       </div>
-      {aiReviewModal?.open && <Modal setAiReviewModal={setAiReviewModal} aiReviewModal={aiReviewModal} loading={loading} />}
+      
+      {aiReviewModal?.open && (
+        <Modal
+          setAiReviewModal={setAiReviewModal}
+          aiReviewModal={aiReviewModal}
+          loading={loadingAiReview}
+        />
+      )}
     </Panel>
   );
 };
