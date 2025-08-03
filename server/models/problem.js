@@ -25,6 +25,10 @@ const problemSchema = new mongoose.Schema({
         type : [String],
         default : []
     },
+    hiddenUntil : {
+        type : Date,
+        default : null
+    },
     examples : [
         {
             input : {

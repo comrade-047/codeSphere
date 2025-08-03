@@ -11,6 +11,11 @@ const submissionSchema = new mongoose.Schema({
         ref : 'Problem',
         required : true,
     },
+    contest: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Contest',
+        default: null, 
+    },
     languages : {
         type : String,
         enum : ['python', 'cpp', 'java', 'javascript'],

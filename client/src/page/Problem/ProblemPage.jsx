@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -18,6 +18,9 @@ const templateObj = {
 
 const ProblemPage = () => {
   const { slug } = useParams();
+  const location = useLocation();
+  const contestSlug = location.state?.contestSlug;
+
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState("cpp");
@@ -79,13 +82,15 @@ const ProblemPage = () => {
           setIsProcessing(false);
           setPollingSubmissionId(null);
           if (submissionData.verdict === "Accepted") {
-            setShowReviewButton(true);
-            const newProblemId = problem._id;
-            if (user && !user.problemsSolved.includes(newProblemId)) {
-              updateUser({
-                ...user,
-                problemsSolved: [...user.problemsSolved, newProblemId],
-              });
+            if(!contestSlug){
+              setShowReviewButton(true);
+              const newProblemId = problem._id;
+              if (user && !user.problemsSolved.includes(newProblemId)) {
+                updateUser({
+                  ...user,
+                  problemsSolved: [...user.problemsSolved, newProblemId],
+                });
+              }
             }
           }
           const subs = await fetchUserSubmissions(problem._id);
@@ -156,11 +161,19 @@ const ProblemPage = () => {
         setResults({ type: "run", loading: true });
         setPollingRunId(res.data.runId);
       } else {
-        const payload = { slug, language, code };
-        const res = await axiosInstance.post(
-          API_PATHS.JUDGE.JUDGE("submit"),
-          payload
-        );
+        let res;
+        if(contestSlug){
+          const payload = {problemId : problem._id, language, code};
+          res = await axiosInstance.post(API_PATHS.CONTESTS.SUBMIT(contestSlug),payload);
+        }
+        else {
+          const payload = { slug, language, code };
+          res = await axiosInstance.post(
+            API_PATHS.JUDGE.JUDGE("submit"),
+            payload
+          );
+        }
+
         setResults({ type: "submit", submission: { verdict: "Pending" } });
         setPollingSubmissionId(res.data.submissionId);
       }

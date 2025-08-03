@@ -10,6 +10,8 @@ import ProfilePage from "./page/User/Profile";
 import UpdateProfile from "./page/User/UpdateProfile";
 import ForgotPasswordPage from "./page/Auth/ForgotPassword";
 import ResetPasswordPage from "./page/Auth/ResetPasswordPage";
+import ContestListPage from "./page/Contest/ContestListPage";
+import ContestDashboardPage from "./page/Contest/ContestDashboardPage";
 
 function App(){
   return (
@@ -31,8 +33,8 @@ function App(){
         <Route path="/problems/:slug" element = {<ProblemPage/>}/>
         <Route path="/:username" element = {<ProfilePage/>} />
         <Route path="/:username/update" element = {<UpdateProfile/>} />
-        <Route path="/contests" element = {<UnderConstructionPage/>}/>
-
+        <Route path="/contests" element = {<ContestListPage/>}/>
+        <Route path="/contests/:slug" element = {<ContestDashboardPage/>} />
         <Route path="/discussions" element = {<UnderConstructionPage/>}/>
       </Routes>
     </>

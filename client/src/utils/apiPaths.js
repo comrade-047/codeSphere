@@ -26,5 +26,11 @@ export const API_PATHS = {
     SUBMISSIONS  : {
         USERSUBMISSIONSBYPROBLEM : (problemId) => `${BASE_URL}/submissions/${problemId}`
     },
-
+    CONTESTS : {
+        GET_ALL : `${BASE_URL}/contests`,
+        GET_CONTEST : (contestSlug) => `${BASE_URL}/contests/${contestSlug}`,
+        REGISTER : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/register`,
+        LEADERBOARD : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/leaderboard`,
+        SUBMIT : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/submit`
+    }
 }
