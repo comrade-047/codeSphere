@@ -1,36 +1,49 @@
 import Problem from "../models/problem.js";
 import TestCase from "../models/testCase.js";
+import mongoose from 'mongoose';
 
 // controller for fetching problems
 export const getAllProblems = async(req,res) =>{
-    const {cursor, limit = 20} = req.query;
+    const {cursor, limit = 20, contest} = req.query;
 
     try{
         // changed for the contest problem 
         const now = new Date();
+        const query = {};
+        if (cursor) {
+            if (mongoose.Types.ObjectId.isValid(cursor)) {
+                query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+            } else {
+                return res.status(400).json({ message: "Invalid cursor ID" });
+            }
+        }
 
-        const query = {
-            ...(cursor && {_id : {$lt : cursor}}),
-            $or : [
-                {hiddenUntil : null},
-                {hiddenUntil : {$lt : now}}
-            ]
-        };
+        if (contest === 'true') {
+            query.hiddenUntil = { $gt: now }; 
+        } else {
+            query.$or = [
+                { hiddenUntil: null },
+                { hiddenUntil: { $lt: now } }
+            ];
+        }
 
-        const problems = await Problem.find(query).sort({_id :1}).limit(parseInt(limit)); // getting the problems within a limit for pagination
+        const problems = await Problem.find(query)
+            .sort({ _id: 1 })
+            .limit(parseInt(limit));
 
         const nextCursor = problems.length > 0 ? problems[problems.length - 1]._id : null;
         
         res.status(200).json({
             problems,
             nextCursor,
-            hasMore : problems.length == parseInt(limit)
+            hasMore: problems.length === parseInt(limit)
         });
+    } catch (err) {
+        console.error("getAllProblems error:", err);
+        return res.status(500).json({ message: "Failed to fetch problems", err });
     }
-    catch(err){
-        return res.status(500).json({message : "Failed to fetch problems", err});
-    }
-}
+};
+
 
 // controller for fetching problem by id 
 export const getProblemBySlug = async(req,res) => {

@@ -11,7 +11,7 @@ export const AttemptedList = ({ attempted }) => (
       <ul className="divide-y divide-gray-200 dark:divide-zinc-700 text-sm">
         {attempted.map(p => (
           <li key={p.slug} className="py-2 px-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded transition">
-            <Link to={`/problems/${p.slug}`} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link to={`/problems/${p.slug}`} className="text-blue-600 dark:text-blue-400  font-medium">
               {p.title}
             </Link>
             {" — "}

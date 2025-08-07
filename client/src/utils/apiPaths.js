@@ -14,6 +14,7 @@ export const API_PATHS = {
         UPLOAD_IMAGE : (username) => `${BASE_URL}/${username}/upload`
     },
     PROBLEM : {
+        CREATE : `${BASE_URL}/problems`,
         ALLPROBLEMS : `${BASE_URL}/problems`,
         PROBLEMBYSLUG : (slug) => `${BASE_URL}/problems/${slug}`
     },
@@ -27,6 +28,7 @@ export const API_PATHS = {
         USERSUBMISSIONSBYPROBLEM : (problemId) => `${BASE_URL}/submissions/${problemId}`
     },
     CONTESTS : {
+        CREATE : `${BASE_URL}/contests`,
         GET_ALL : `${BASE_URL}/contests`,
         GET_CONTEST : (contestSlug) => `${BASE_URL}/contests/${contestSlug}`,
         REGISTER : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/register`,

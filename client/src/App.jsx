@@ -12,21 +12,28 @@ import ForgotPasswordPage from "./page/Auth/ForgotPassword";
 import ResetPasswordPage from "./page/Auth/ResetPasswordPage";
 import ContestListPage from "./page/Contest/ContestListPage";
 import ContestDashboardPage from "./page/Contest/ContestDashboardPage";
+import AdminRoute from "./components/Admin/AdminRoutes";
+import CreateProblemPage from "./page/Admin/CreateProblemPage";
+import CreateContestPage from "./page/Admin/CreateContestPage";
 
 function App(){
   return (
-    // <div className="min-h-screen flex-col justify-center items-center">
-    //   <h1 className="bg-amber-300" >codeSphere</h1>
-    //   <p className="text-sm ">A global, all-encompassing space for coding challenges.</p>
-    //   {/* <LoginPage/> */}
-    //   <SignupPage/>
-    // </div>
     <>
       <Header/>
       <Routes>
         <Route path="/" element = {<Home/>} />
         <Route path="/login" element = {<LoginPage/>} />
         <Route path="/signup" element = {<SignupPage/>} />
+        <Route path="/admin/create-problem" element = {
+          <AdminRoute>
+            <CreateProblemPage/>
+          </AdminRoute>
+        } />
+        <Route path="/admin/create-contest" element = {
+          <AdminRoute>
+            <CreateContestPage/>
+          </AdminRoute>
+        } />
         <Route path="/forgot-password" element = {<ForgotPasswordPage/>}/>
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/problems" element = {<ProblemLandingPage/>}/>

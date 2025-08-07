@@ -31,7 +31,8 @@ export const ProfileCard = ({ user }) => (
       </div>
       <div>
         <h2 className="text-3xl font-semibold flex items-center gap-2 text-gray-800 dark:text-white">
-          <User size={20} /> {user.username}
+          {/* <User size={20} /> {user.username} */}
+          {user.username}
         </h2>
         <p className="text-sm flex items-center gap-2 mt-1 text-gray-600 dark:text-gray-400">
           <Mail size={14} /> {user.email}
