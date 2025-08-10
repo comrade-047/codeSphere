@@ -4,7 +4,7 @@ import {
   UploadCloud,
   X,
   Code2,
-  FileText,
+  History,
   LoaderCircle,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
@@ -77,7 +77,7 @@ const EditorSection = ({
                   : "text-gray-600 hover:text-blue-500 dark:text-gray-300"
               }`}
             >
-              <FileText size={16} />
+              <History size={16} />
               {readOnlysubmission.verdict}
             </button>
             <button

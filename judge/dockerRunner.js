@@ -77,8 +77,7 @@ const executeInContainer = (container, command, input) => {
   });
 };
 
-
-export const runInIsolatedContainer = async (language, code, input) => {
+export const runAllTestCasesInContainer = async (language, code, testCases) => {
   const langConfig = languageConfigs[language];
   if (!langConfig) {
     return { verdict: 'Runtime Error', error: 'Unsupported language specified' };
@@ -110,17 +109,53 @@ export const runInIsolatedContainer = async (language, code, input) => {
       }
     }
 
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Time Limit Exceeded')), 2000));
-    const runPromise = executeInContainer(container, langConfig.runCmd(fileName), input);
+    let finalVerdict = "Accepted";
+    const finalResults = [];
 
-    const runResult = await Promise.race([runPromise, timeoutPromise]);
-    
-    if (runResult.exitCode !== 0) {
-      return { verdict: 'Runtime Error', output: runResult.output, error: runResult.error };
+    // --- EXECUTE FOR EACH TEST CASE ---
+    for (const tc of testCases) {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Time Limit Exceeded")), 2000)
+      );
+      const runPromise = executeInContainer(
+        container,
+        langConfig.runCmd(fileName),
+        tc.input
+      );
+
+      let runResult;
+      try {
+        runResult = await Promise.race([runPromise, timeoutPromise]);
+      } catch (err) {
+        // This catches the Time Limit Exceeded error
+        finalVerdict = "Time Limit Exceeded";
+        finalResults.push({
+          ...tc,
+          actualOutput: "",
+          passed: false,
+          error: "Time Limit Exceeded",
+        });
+        break; // Stop processing further test cases
+      }
+
+      const passed =
+        runResult.exitCode === 0 &&
+        runResult.output.trim() === tc.output.trim();
+      finalResults.push({
+        ...tc,
+        actualOutput: runResult.output.trim(),
+        passed,
+        error: runResult.error,
+      });
+
+      if (!passed) {
+        finalVerdict =
+          runResult.exitCode !== 0 ? "Runtime Error" : "Wrong Answer";
+        break; // Stop processing further test cases
+      }
     }
 
-    return { verdict: 'Accepted', output: runResult.output, error: '' };
-
+    return { finalVerdict, finalResults };
   } catch (err) {
     // console.error(`[CRITICAL] An unexpected error occurred in dockerRunner:`, err);
 
@@ -133,6 +168,52 @@ export const runInIsolatedContainer = async (language, code, input) => {
     if (container) {
       try { await container.stop(); } catch (e) { /* ignore */ }
       try { await container.remove(); } catch (e) { /* ignore */ }
+    }
+    await removeTempDir(dir);
+  }
+};
+
+export const runSingleInputInContainer = async (language, code, input) => {
+  const langConfig = languageConfigs[language];
+  if (!langConfig) return { verdict: 'Runtime Error', error: 'Unsupported language' };
+
+  const { dir, fileName } = await writeTempFile(langConfig.extension, code, langConfig.customFileName);
+  let container;
+
+  try {
+    container = await docker.createContainer({ Image: langConfig.image, Cmd: ['tail', '-f', '/dev/null'], Tty: false, HostConfig: { Binds: [`${dir}:/app`], Memory: 256 * 1024 * 1024, CpuPeriod: 100000, CpuQuota: 50000 }, WorkingDir: '/app' });
+    await container.start();
+
+    if (langConfig.compileCmd) {
+      const compileResult = await executeInContainer(container, langConfig.compileCmd(fileName), '');
+      if (compileResult.exitCode !== 0) {
+        return { verdict: 'Compilation Error', output: '', error: compileResult.error };
+      }
+    }
+
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Time Limit Exceeded')), 2000));
+    const runPromise = executeInContainer(container, langConfig.runCmd(fileName), input);
+
+    const runResult = await Promise.race([runPromise, timeoutPromise]);
+
+    // For a 'run' job, we only care about the exit code.
+    if (runResult.exitCode !== 0) {
+      return { verdict: 'Runtime Error', output: runResult.output, error: runResult.error };
+    }
+
+    // If exit code is 0, it's always 'Accepted' for a run job, regardless of output.
+    return { verdict: 'Accepted', output: runResult.output, error: runResult.error };
+
+  } catch (err) {
+    if (err.message === 'Time Limit Exceeded') {
+      return { verdict: 'Time Limit Exceeded', output: '', error: 'Execution took too long.' };
+    }
+    console.error(`[CRITICAL] An unexpected error occurred in dockerRunner:`, err);
+    throw err;
+  } finally {
+    if (container) {
+      try { await container.stop(); } catch (e) {}
+      try { await container.remove(); } catch (e) {}
     }
     await removeTempDir(dir);
   }

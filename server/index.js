@@ -11,7 +11,7 @@ import judgeRoutes from './routes/judgeRoutes.js'
 import aiReviewRoute from "./routes/aiReveiwRoute.js"
 import submissionRoutes from "./routes/submissionRoutes.js"
 import contestRoutes from "./routes/contestRoutes.js"
-
+import discussionRoutes from './routes/discussionroutes.js'
 dotenv.config();
 
 const app = express();
@@ -39,6 +39,7 @@ app.use('/api/judge',judgeRoutes);
 app.use('/api/ai-review',aiReviewRoute);
 app.use('/api/submissions',submissionRoutes);
 app.use('/api/contests',contestRoutes);
+app.use('/api/discussions',discussionRoutes)
 // this dynamic route should be in end becuase it might intercept other requests too
 app.use('/api/:username',userRoutes);
 

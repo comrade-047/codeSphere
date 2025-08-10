@@ -15,6 +15,9 @@ import ContestDashboardPage from "./page/Contest/ContestDashboardPage";
 import AdminRoute from "./components/Admin/AdminRoutes";
 import CreateProblemPage from "./page/Admin/CreateProblemPage";
 import CreateContestPage from "./page/Admin/CreateContestPage";
+import DiscussionListPage from "./page/Discussion/DiscussionListPage";
+import DiscussionThreadPage from "./page/Discussion/DiscussionThreadPage";
+import CreateDiscussionThreadPage from "./page/Discussion/CreateDiscussionThreadPage";
 
 function App(){
   return (
@@ -42,7 +45,9 @@ function App(){
         <Route path="/:username/update" element = {<UpdateProfile/>} />
         <Route path="/contests" element = {<ContestListPage/>}/>
         <Route path="/contests/:slug" element = {<ContestDashboardPage/>} />
-        <Route path="/discussions" element = {<UnderConstructionPage/>}/>
+        <Route path="/discussions" element={<DiscussionListPage />} />
+        <Route path="/discussions/:threadId" element={<DiscussionThreadPage />} />
+        <Route path="/discussions/new" element = {<CreateDiscussionThreadPage/>} />
       </Routes>
     </>
   )

@@ -2,7 +2,8 @@ import { Worker } from 'bullmq';
 import dotenv from 'dotenv';
 import connectDB from './config/dbConfig.js';
 import { redisConnection, resultRedisClient } from './config/redisConfig.js';
-import { runInIsolatedContainer } from './dockerRunner.js';
+import {runSingleInputInContainer} from './dockerRunner.js'
+import { runAllTestCasesInContainer } from './dockerRunner.js';
 
 import Submission from './models/submission.js';
 import TestCase from './models/testCase.js';
@@ -19,20 +20,8 @@ const submissionWorker = new Worker('submission-queue', async (job) => {
 
   try {
     const testCases = await TestCase.find({ problem: problemId });
-    let finalVerdict = 'Accepted';
-    let finalResults = [];
-    let finalError = null;
-
-    for (const tc of testCases) {
-      const result = await runInIsolatedContainer(language, code, tc.input);
-      const passed = result.verdict === 'Accepted' && result.output.trim() === tc.output.trim();
-      finalResults.push({ input: tc.input, expectedOutput: tc.output, actualOutput: result.output, passed, error: result.error });
-      if (!passed) {
-        finalVerdict = result.verdict === 'Accepted' ? 'Wrong Answer' : result.verdict;
-        finalError = result.error;
-        break; 
-      }
-    }
+    // change for decreasing the runTime
+    const { finalVerdict, finalResults } = await runAllTestCasesInContainer(language, code, testCases);
 
     await Submission.findByIdAndUpdate(submissionId, { verdict: finalVerdict, testResults: finalResults });
 
@@ -62,14 +51,13 @@ const runWorker = new Worker('run-queue', async (job) => {
   console.log(`[Processing Run] Job ${job.id} for runId ${runId}`);
 
   try {
-    const result = await runInIsolatedContainer(language, code, input);
-
+    const result = await runSingleInputInContainer(language, code, input);
+    
     await resultRedisClient.set(`run-result:${runId}`, JSON.stringify(result), 'EX', 300);
 
-    // console.log(`[Finished Run] Job ${job.id} for runId ${runId}`);
+    console.log(`[Finished Run] Job ${job.id} for runId ${runId}`);
   } catch (err) {
-    console.error(`[Run System Error] Job ${job.id} failed. Error: ${err.message}`);
-
+    // console.error(`[Run System Error] Job ${job.id} failed. Error: ${err.message}`);
     await resultRedisClient.set(`run-result:${runId}`, JSON.stringify({
       verdict: 'Runtime Error',
       error: 'The judge encountered a system error.'

@@ -209,7 +209,7 @@ const ProblemPage = () => {
   return (
     <PanelGroup
       direction="horizontal"
-      className="h-screen-[4px] w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors p-2 "
+      className="h-screen w-screen text-sm bg-gray-100 dark:bg-zinc-900 text-gray-800 dark:text-gray-100 transition-colors p-2 "
     >
       <Panel
         defaultSize={45}

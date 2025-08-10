@@ -34,5 +34,11 @@ export const API_PATHS = {
         REGISTER : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/register`,
         LEADERBOARD : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/leaderboard`,
         SUBMIT : (contestSlug) => `${BASE_URL}/contests/${contestSlug}/submit`
+    },
+    DISCUSSIONS : {
+        GET_ALL : `${BASE_URL}/discussions`,
+        GET_THREAD : (threadId) => `${BASE_URL}/discussions/${threadId}`,
+        CREATE_THREAD : `${BASE_URL}/discussions`,
+        REPLY : (threadId) => `${BASE_URL}/discussions/${threadId}/posts`
     }
 }

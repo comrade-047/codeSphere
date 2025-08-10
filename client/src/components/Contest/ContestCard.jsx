@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { UserContext } from '../../context/userContext';
 
 const getStatus = (contest) => {
   const now = new Date();
@@ -14,6 +15,8 @@ const getStatus = (contest) => {
 };
 
 const ContestCard = ({ contest }) => {
+  const {user} = useContext(UserContext);
+  
   const start = new Date(contest.startTime);
   const end = new Date(contest.endTime);
   const duration = Math.round((end - start) / (1000 * 60 * 60));
@@ -39,7 +42,7 @@ const ContestCard = ({ contest }) => {
       </div>
       <div className="p-5 pt-0">
         <Link
-          to={`/contests/${contest.slug}`}
+          to={user ? `/contests/${contest.slug}` : `/login`}
           className="w-full block text-center py-2.5 font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg transition-all duration-200 shadow hover:shadow-md"
         >
           Enter Contest
