@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
@@ -32,7 +31,6 @@ const ProblemDiscussionTab = ({ isLoggedIn, problemId }) => {
   }, [problemId]);
 
   const handleThreadCreated = (newThread) => {
-    // Add the author info from the context since the create endpoint returns the raw document
     const threadWithAuthor = { ...newThread, author: { username: user.username } };
     setThreads([threadWithAuthor, ...threads]);
   };
@@ -53,7 +51,6 @@ const ProblemDiscussionTab = ({ isLoggedIn, problemId }) => {
     return <div className="p-6 text-center text-gray-500 dark:text-gray-400">Loading discussions...</div>;
   }
 
-  // If a thread is selected, show the detail view
   if (selectedThreadId) {
     return (
       <ThreadDetailView
@@ -70,7 +67,7 @@ const ProblemDiscussionTab = ({ isLoggedIn, problemId }) => {
   return (
     <div className="p-4">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-5">
         <div className="relative w-full max-w-xs">
           <Search
             size={18}
@@ -81,13 +78,13 @@ const ProblemDiscussionTab = ({ isLoggedIn, problemId }) => {
             placeholder="Search discussions"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 p-2 rounded-md border dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 text-sm focus:outline-none"
+            className="w-full pl-10 pr-3 py-2 rounded-md border dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
         </div>
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-md transition"
+            className="ml-3 inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-md shadow-sm transition-colors duration-200"
           >
             <Plus size={16} /> New Post
           </button>
@@ -103,18 +100,32 @@ const ProblemDiscussionTab = ({ isLoggedIn, problemId }) => {
       )}
 
       {/* Thread List */}
-      <div className="mt-4 border-t dark:border-zinc-700">
+      <div className="mt-4 divide-y dark:divide-zinc-700">
         {filteredThreads.length > 0 ? (
           filteredThreads.map((thread) => (
             <div
               key={thread._id}
               onClick={() => setSelectedThreadId(thread._id)}
-              className="p-3 border-b dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-colors"
+              className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/60 cursor-pointer transition-all duration-150"
             >
-              <p className="font-medium text-gray-800 dark:text-white">{thread.title}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                by {thread.author?.username || "Unknown"}
-              </p>
+              {/* User avatar */}
+              <div className="flex-shrink-0">
+                <img
+                  src={thread.author?.profilePicUrl || `https://ui-avatars.com/api/?name=${thread.author?.username || "U"}&background=random`}
+                  alt={thread.author?.username || "User"}
+                  className="w-10 h-10 rounded-full border border-gray-200 dark:border-zinc-700"
+                />
+              </div>
+
+              {/* Thread content */}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {thread.title}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  by {thread.author?.username || "Unknown"}
+                </p>
+              </div>
             </div>
           ))
         ) : (

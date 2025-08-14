@@ -38,7 +38,7 @@ export const getThreads = async(req, res) => {
         }
 
         const threads = await discussionThread.find(filter)
-                        .populate('author','username')
+                        .populate('author','username profilePicUrl')
                         .sort({lastActivity : - 1});
 
         return res.status(200).json(threads);
