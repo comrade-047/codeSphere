@@ -46,3 +46,4 @@ server/.env
 *.log
 
 compiler-service.pem
+judge-service.pem
