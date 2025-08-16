@@ -4,7 +4,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { UserContext } from '../../context/userContext';
 import Countdown from '../../components/Contest/Countdown';
-import Leaderboard from '../../components/Contest/Leaderboard';
+import Leaderboard from '../../components/Contest/LeaderBoard';
 import { Award, List, BarChart2 } from 'lucide-react';
 
 const ContestDashboardPage = () => {
