@@ -1,174 +1,115 @@
-import Docker from 'dockerode';
-import { PassThrough } from 'stream';
+import { spawn, execFile as execFileCallback } from 'child_process';
+import { promisify } from 'util';
 import { writeTempFile, removeTempDir } from './utils.js';
+import fs from 'fs/promises';
+import path from 'path';
 
-const docker = new Docker();
+const execFile = promisify(execFileCallback);
 
 const languageConfigs = {
   cpp: {
     extension: 'cpp',
-    image: 'gcc:latest',
-    compileCmd: (fileName) => ['g++', fileName, '-o', 'code'],
-    runCmd: () => ['./code']
+    compile: (filePath, outputPath) => ({ cmd: 'g++', args: [filePath, '-o', outputPath] }),
+    run: (executablePath) => ({ cmd: executablePath, args: [] })
   },
   python: {
     extension: 'py',
-    image: 'python:3.9-slim',
-    compileCmd: null, 
-    runCmd: (fileName) => ['python', fileName]
+    compile: null,
+    run: (filePath) => ({ cmd: 'python3', args: [filePath] })
   },
   javascript: {
     extension: 'js',
-    image: 'node:20-alpine',
-    compileCmd: null,
-    runCmd: (fileName) => ['node', fileName]
+    compile: null,
+    run: (filePath) => ({ cmd: 'node', args: [filePath] })
   },
   java: {
     extension: 'java',
-    image: 'openjdk:17',
     customFileName: 'Main.java',
-    compileCmd: (fileName) => ['javac', fileName],
-    runCmd: () => ['java', 'Main']
+    compile: (filePath) => ({ cmd: 'javac', args: [filePath] }),
+    run: (dir) => ({ cmd: 'java', args: ['Main'], cwd: dir }) // run in temp directory
   },
 };
 
+const executeCode = (command, args, options) => {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, { cwd: options.cwd || process.cwd() });
 
-const executeInContainer = (container, command, input) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const exec = await container.exec({
-        Cmd: command,
-        AttachStdin: true,
-        AttachStdout: true,
-        AttachStderr: true,
-        Tty: false, 
-      });
+    let stdout = '';
+    let stderr = '';
+    let timedOut = false;
 
-      const stream = await exec.start({ hijack: true, stdin: true });
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGTERM');
+    }, options.timeout || 2000);
 
-      stream.write(input);
-      stream.end();
+    child.stdout.on('data', (data) => stdout += data.toString());
+    child.stderr.on('data', (data) => stderr += data.toString());
 
-      
-      const stdout = new PassThrough();
-      const stderr = new PassThrough();
-      container.modem.demuxStream(stream, stdout, stderr);
-      
-      
-      let output = '';
-      let errorOutput = '';
-      
-      stdout.on('data', chunk => output += chunk.toString('utf-8'));
-      stderr.on('data', chunk => errorOutput += chunk.toString('utf-8'));
+    child.on('error', (err) => {
+      console.error('Execution spawn error:', err);
+      clearTimeout(timer);
+      resolve({ success: false, stdout: '', stderr: err.message, signal: null });
+    });
 
-      stream.on('end', () => {
-        exec.inspect((err, data) => {
-          if (err) return reject(err);
-          // if (data.ExitCode !== 0) {
-          //   console.log(`DEBUG: Command [${command.join(' ')}] finished with Exit Code: ${data.ExitCode}. Stderr: ${errorOutput}`);
-          // }
-          resolve({ output, error: errorOutput, exitCode: data.ExitCode });
-        });
-      });
-      stream.on('error', (err) => reject(err));
-    } catch (err) {
-      reject(err);
+    child.on('close', (code, signal) => {
+      clearTimeout(timer);
+      if (timedOut) resolve({ success: false, stdout, stderr, signal: 'SIGTERM' });
+      else resolve({ success: code === 0, stdout, stderr, signal });
+    });
+
+    if (options.input) {
+      child.stdin.write(options.input);
+      child.stdin.end();
     }
   });
 };
 
 export const runAllTestCasesInContainer = async (language, code, testCases) => {
   const langConfig = languageConfigs[language];
-  if (!langConfig) {
-    return { verdict: 'Runtime Error', error: 'Unsupported language specified' };
-  }
+  if (!langConfig) throw new Error('Unsupported language');
 
-  const { dir, fileName } = await writeTempFile(langConfig.extension, code, langConfig.customFileName);
-  let container;
+  const { dir, filePath, fileName } = await writeTempFile(langConfig.extension, code, langConfig.customFileName);
+  const executablePath = path.join(dir, 'executable');
 
   try {
-    container = await docker.createContainer({
-      Image: langConfig.image,
-      // This command keeps the container alive, preventing the race condition
-      Cmd: ['tail', '-f', '/dev/null'],
-      Tty: false,
-      HostConfig: {
-        Binds: [`${dir}:/app`],
-        Memory: 256 * 1024 * 1024,
-        CpuPeriod: 100000,
-        CpuQuota: 50000,
-      },
-      WorkingDir: '/app',
-    });
-    await container.start();
-
-    if (langConfig.compileCmd) {
-      const compileResult = await executeInContainer(container, langConfig.compileCmd(fileName), '');
-      if (compileResult.exitCode !== 0) {
-        return { verdict: 'Compilation Error', output: '', error: compileResult.error };
+    if (langConfig.compile) {
+      const { cmd, args } = langConfig.compile(filePath, executablePath);
+      try {
+        await execFile(cmd, args, { cwd: dir, timeout: 5000 });
+      } catch (error) {
+        await removeTempDir(dir);
+        return { finalVerdict: 'Compilation Error', finalResults: [{ error: error.stderr }] };
+      }
+      if(language === 'cpp'){
+        await fs.chmod(executablePath,0o755);
       }
     }
 
-    let finalVerdict = "Accepted";
+    let finalVerdict = 'Accepted';
     const finalResults = [];
 
-    // --- EXECUTE FOR EACH TEST CASE ---
     for (const tc of testCases) {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Time Limit Exceeded")), 2000)
-      );
-      const runPromise = executeInContainer(
-        container,
-        langConfig.runCmd(fileName),
-        tc.input
-      );
+      const runOptions = langConfig.run(language === 'java' ? dir : (langConfig.compile ? executablePath : filePath));
+      const { cmd, args, cwd } = runOptions;
 
-      let runResult;
-      try {
-        runResult = await Promise.race([runPromise, timeoutPromise]);
-      } catch (err) {
-        // This catches the Time Limit Exceeded error
-        finalVerdict = "Time Limit Exceeded";
-        finalResults.push({
-          ...tc,
-          actualOutput: "",
-          passed: false,
-          error: "Time Limit Exceeded",
-        });
-        break; // Stop processing further test cases
+      const runResult = await executeCode(cmd, args, { cwd: cwd || dir, input: tc.input, timeout: 2000 });
+
+      if (!runResult.success) {
+        finalVerdict = runResult.signal === 'SIGTERM' ? 'Time Limit Exceeded' : 'Runtime Error';
+        finalResults.push({ ...tc, actualOutput: runResult.stdout, passed: false, error: runResult.stderr });
+        break;
       }
 
-      const passed =
-        runResult.exitCode === 0 &&
-        runResult.output.trim() === tc.output.trim();
-      finalResults.push({
-        ...tc,
-        actualOutput: runResult.output.trim(),
-        passed,
-        error: runResult.error,
-      });
+      const passed = runResult.stdout.trim() === tc.output.trim();
+      finalResults.push({ ...tc, actualOutput: runResult.stdout.trim(), passed, error: runResult.stderr });
 
-      if (!passed) {
-        finalVerdict =
-          runResult.exitCode !== 0 ? "Runtime Error" : "Wrong Answer";
-        break; // Stop processing further test cases
-      }
+      if (!passed) finalVerdict = 'Wrong Answer';
+      if (!passed) break;
     }
 
     return { finalVerdict, finalResults };
-  } catch (err) {
-    // console.error(`[CRITICAL] An unexpected error occurred in dockerRunner:`, err);
-
-    if (err.message === 'Time Limit Exceeded') {
-      return { verdict: 'Time Limit Exceeded', output: '', error: 'Execution exceeded the 2-second time limit.' };
-    }
-    return { verdict: 'Runtime Error', output: '', error: `A judge system error occurred: ${err.message}` };
   } finally {
-    // Crucial: Stop and remove the long-running container to clean up resources
-    if (container) {
-      try { await container.stop(); } catch (e) { /* ignore */ }
-      try { await container.remove(); } catch (e) { /* ignore */ }
-    }
     await removeTempDir(dir);
   }
 };
@@ -177,44 +118,32 @@ export const runSingleInputInContainer = async (language, code, input) => {
   const langConfig = languageConfigs[language];
   if (!langConfig) return { verdict: 'Runtime Error', error: 'Unsupported language' };
 
-  const { dir, fileName } = await writeTempFile(langConfig.extension, code, langConfig.customFileName);
-  let container;
+  const { dir, filePath, fileName } = await writeTempFile(langConfig.extension, code, langConfig.customFileName);
+  const executablePath = path.join(dir, 'executable');
 
   try {
-    container = await docker.createContainer({ Image: langConfig.image, Cmd: ['tail', '-f', '/dev/null'], Tty: false, HostConfig: { Binds: [`${dir}:/app`], Memory: 256 * 1024 * 1024, CpuPeriod: 100000, CpuQuota: 50000 }, WorkingDir: '/app' });
-    await container.start();
-
-    if (langConfig.compileCmd) {
-      const compileResult = await executeInContainer(container, langConfig.compileCmd(fileName), '');
-      if (compileResult.exitCode !== 0) {
-        return { verdict: 'Compilation Error', output: '', error: compileResult.error };
+    if (langConfig.compile) {
+      const { cmd, args } = langConfig.compile(filePath, executablePath);
+      try {
+        await execFile(cmd, args, { cwd: dir, timeout: 5000 });
+      } catch (error) {
+        return { verdict: 'Compilation Error', output: '', error: error.stderr };
       }
+      if(language === 'cpp') await fs.chmod(executablePath, 0o755);
     }
 
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Time Limit Exceeded')), 2000));
-    const runPromise = executeInContainer(container, langConfig.runCmd(fileName), input);
+    const runOptions = langConfig.run(language === 'java' ? dir : (langConfig.compile ? executablePath : filePath));
+    const { cmd, args, cwd } = runOptions;
 
-    const runResult = await Promise.race([runPromise, timeoutPromise]);
+    const runResult = await executeCode(cmd, args, { cwd: cwd || dir, input, timeout: 2000 });
 
-    // For a 'run' job, we only care about the exit code.
-    if (runResult.exitCode !== 0) {
-      return { verdict: 'Runtime Error', output: runResult.output, error: runResult.error };
+    if (!runResult.success) {
+      if (runResult.signal === 'SIGTERM') return { verdict: 'Time Limit Exceeded', output: runResult.stdout, error: 'Execution timed out.' };
+      return { verdict: 'Runtime Error', output: runResult.stdout, error: runResult.stderr };
     }
 
-    // If exit code is 0, it's always 'Accepted' for a run job, regardless of output.
-    return { verdict: 'Accepted', output: runResult.output, error: runResult.error };
-
-  } catch (err) {
-    if (err.message === 'Time Limit Exceeded') {
-      return { verdict: 'Time Limit Exceeded', output: '', error: 'Execution took too long.' };
-    }
-    console.error(`[CRITICAL] An unexpected error occurred in dockerRunner:`, err);
-    throw err;
+    return { verdict: 'Accepted', output: runResult.stdout, error: runResult.stderr };
   } finally {
-    if (container) {
-      try { await container.stop(); } catch (e) {}
-      try { await container.remove(); } catch (e) {}
-    }
     await removeTempDir(dir);
   }
 };

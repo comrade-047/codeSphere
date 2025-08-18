@@ -1,23 +1,48 @@
 services:
+  # 1. The Redis Server
+  # This will be the central queue for your entire application.
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     container_name: judge-redis
-    ports:
-      - "6379:6379"  
-    volumes:
-      - redis-data:/data
+    # This command starts Redis and sets a mandatory password.
+    # IMPORTANT: Replace 'YOUR_STRONG_PASSWORD' in your .env file.
     command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      # Exposes Redis to the public internet via your EC2's Elastic IP.
+      # The AWS firewall (Security Group) will restrict access to only your server.
+      - "0.0.0.0:6379:6379"
+    restart: always
+    volumes:
+      - redis-data:/data # Persists Redis data across restarts.
+    networks:
+      - judge-net
 
-  judge:
-    image: <905418426806>.dkr.ecr.<ap-south-1>.amazonaws.com/judge-service:latest
-    container_name: judge-service
+  # 2. The Judge Worker
+  # This service processes jobs from the Redis queue.
+  judge-worker:
+    # This tells docker-compose to build the image from the Dockerfile
+    # in the ./judge-worker directory on your EC2 instance.
+    build:
+      context: ./judge-worker
+      dockerfile: Dockerfile
+    container_name: judge-worker
+    # The .env file provides the environment variables.
     env_file:
-      - .env
+      - ./judge-worker/.env
+    # We override REDIS_HOST here to use the service name from this file.
+    environment:
+      - REDIS_HOST=redis
     depends_on:
       - redis
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     restart: always
+    networks:
+      - judge-net
 
+# Define the network for the services to communicate with each other.
+networks:
+  judge-net:
+    driver: bridge
+
+# Define the volume for persistent Redis data.
 volumes:
   redis-data:

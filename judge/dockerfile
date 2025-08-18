@@ -2,25 +2,17 @@ FROM --platform=linux/amd64 node:24-alpine
 
 WORKDIR /app
 
+
 RUN apk add --no-cache \
-    bash \
-    python3 \
     g++ \
-    make \
-    openjdk17 \
-    docker-cli \
-    docker \
-    curl \
-    && npm install -g npm@latest
+    python3 \
+    openjdk17 
 
 COPY package*.json ./
 
 RUN npm install --production
 
 COPY . .
-
-
-ENV NODE_ENV=production
 
 
 CMD ["node", "worker.js"]

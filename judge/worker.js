@@ -2,8 +2,7 @@ import { Worker } from 'bullmq';
 import dotenv from 'dotenv';
 import connectDB from './config/dbConfig.js';
 import { redisConnection, resultRedisClient } from './config/redisConfig.js';
-import {runSingleInputInContainer} from './dockerRunner.js'
-import { runAllTestCasesInContainer } from './dockerRunner.js';
+import { runSingleInputInContainer, runAllTestCasesInContainer } from './dockerRunner.js';
 
 import Submission from './models/submission.js';
 import TestCase from './models/testCase.js';
@@ -25,19 +24,26 @@ const submissionWorker = new Worker('submission-queue', async (job) => {
 
     await Submission.findByIdAndUpdate(submissionId, { verdict: finalVerdict, testResults: finalResults });
 
-    if (finalVerdict === 'Accepted') {
-      const problem = await Problem.findById(problemId);
-      const user = await User.findById(userId);
+    // ✅ Update problem stats for ALL submissions
+    const problem = await Problem.findById(problemId);
+    if (problem) {
       problem.submissions = (await Submission.countDocuments({ problem: problemId }));
       problem.successfulSubmissions = (await Submission.countDocuments({ problem: problemId, verdict: 'Accepted' }));
-      problem.acceptanceRate = (problem.successfulSubmissions / problem.submissions) * 100;
+      problem.acceptanceRate = problem.submissions > 0
+        ? (problem.successfulSubmissions / problem.submissions) * 100
+        : 0;
       await problem.save();
+    }
+
+    
+    if (finalVerdict === 'Accepted') {
+      const user = await User.findById(userId);
       if (user && !user.problemsSolved.includes(problemId)) {
         user.problemsSolved.push(problemId);
         await user.save();
       }
     }
-    // console.log(`[Finished Submit] Job ${job.id} with verdict: ${finalVerdict}`);
+
   } catch (err) {
     // console.error(`[Submit System Error] Job ${job.id} failed. Error: ${err.message}`);
     await Submission.findByIdAndUpdate(submissionId, { verdict: 'Runtime Error', error: 'The judge encountered a system error.' });
