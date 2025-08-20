@@ -1,7 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import { getUserDetails, updateUserDetails } from "../controllers/userController.js";
-import { upload } from "../Middleware/uploadMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 import cloudinary from "../config/cloudinaryConfig.js";
 import streamifier from "streamifier";
 const router = express.Router({mergeParams:true});
