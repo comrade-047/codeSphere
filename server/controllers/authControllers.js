@@ -140,3 +140,19 @@ export const resetPassword = async (req, res) => {
         return res.status(500).json({ message: "Server error during password reset." });
     }
 };
+
+export const getLoggedInUser = async(req, res) => {
+    const userId = req.user.id;
+    // console.log("hit getLoggedInUser", userId);
+    if(!userId) return res.status(400).json({message : "User not found"});
+    try {
+        const user = await User.findById(userId).select('-password');
+        if(!user) return res.status(404).json({message : "User not found"});
+
+        return res.status(200).json(user);
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500).json({message : "Server error", err});
+    }
+}

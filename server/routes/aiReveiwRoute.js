@@ -1,7 +1,7 @@
 import express from "express";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import { protect } from "../Middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 import User from "../models/user.js";
 dotenv.config();
 

@@ -78,7 +78,9 @@ const InputOutputSection = ({ rawInput, setRawInput, results, isProcessing, acti
               <div
                 className={`w-full h-full min-h-[100px] border border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm font-mono shadow-inner whitespace-pre-wrap ${displayClassName}`}
               >
-                {displayValue}
+                <p className="text-black dark:text-white">
+                  {displayValue}
+                </p>
               </div>
             </div>
           )}

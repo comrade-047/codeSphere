@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, isAdmin } from "../Middleware/authMiddleware.js";
+import { protect, isAdmin } from "../middleware/authMiddleware.js";
 import {
   createContest,
   getAllContests,

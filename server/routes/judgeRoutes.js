@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../Middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 import {getRunStatus, runCode, submitCode} from "../controllers/judgeController.js"
 
 const router = express.Router();

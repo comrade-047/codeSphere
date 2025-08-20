@@ -2,11 +2,13 @@ import React, { useContext, useState } from "react";
 import Input from "../../components/Input";
 import { UserContext } from "../../context/userContext";
 import { Link, useNavigate } from "react-router-dom";
-import { handleLogin } from "../../utils/helper"; // Import the helper function
+import { handleLogin } from "../../utils/helper";
+import { Loader2 } from "lucide-react"; 
 
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); 
 
   const { updateUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -16,7 +18,16 @@ const LoginPage = () => {
 
   const onLoginSubmit = async (e) => {
     e.preventDefault();
-    await handleLogin(form, setError, updateUser, navigate);
+    setIsSubmitting(true);
+    setError(""); 
+
+    try {
+      await handleLogin(form, setError, updateUser, navigate);
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false); 
+    }
   };
 
   return (
@@ -69,9 +80,17 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            disabled={isSubmitting} 
+            className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:bg-indigo-400 disabled:cursor-not-allowed"
           >
-            Login
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
 
           <div className="mt-6 text-center">
@@ -89,5 +108,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-// add loader after making the call every where it should be consistent

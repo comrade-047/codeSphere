@@ -6,7 +6,8 @@ export const API_PATHS = {
         LOGIN : `${BASE_URL}/auth/login`,
         REGISTER : `${BASE_URL}/auth/register`,
         FORGOT_PASSWORD : `${BASE_URL}/auth/forgot-password`,
-        RESET_PASSWORD :   `${BASE_URL}/auth/reset-password`
+        RESET_PASSWORD :   `${BASE_URL}/auth/reset-password`,
+        GET_ME : `${BASE_URL}/auth/me`
     },
     USER : {
         PROFILE : (username) => `${BASE_URL}/${username}`,

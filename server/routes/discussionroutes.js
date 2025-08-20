@@ -1,6 +1,6 @@
 import express from "express";
 import { createPostInThread, createThread, getThreads, getThreadsWithPosts } from "../controllers/discussionControllers.js";
-import { protect } from "../Middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.get('/', getThreads);
