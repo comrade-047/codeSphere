@@ -1,3 +1,4 @@
+# for deployment on EC2
 services:
   # 1. The Redis Server
   # This will be the central queue for your entire application.
@@ -46,3 +47,54 @@ networks:
 # Define the volume for persistent Redis data.
 volumes:
   redis-data:
+
+
+
+# docker-compose.yml for Local Development 
+
+
+# services:
+#   # 1. The Redis Server (for local use)
+#   redis:
+#     image: redis:latest
+#     container_name: judge-redis-local
+#     ports:
+#       # Binds the port only to localhost on your machine for security.
+#       - "127.0.0.1:6379:6379"
+#     restart: always
+#     volumes:
+#       - redis-data-local:/data # Persists Redis data locally.
+#     networks:
+#       - judge-net-local
+
+#   # 2. The Judge Worker
+#   judge-worker:
+#     build:
+#       context: ./judge-worker
+#       dockerfile: Dockerfile
+#     container_name: judge-worker-local
+#     env_file:
+#       - ./judge-worker/.env
+#     # This environment variable tells the worker to connect to the 'redis' service
+#     # defined in this file, not to an external IP.
+#     environment:
+#       - REDIS_HOST=redis
+#     volumes:
+#       # This is crucial for local development. It syncs your local code
+#       # with the code inside the container for live reloading.
+#       - ./judge-worker:/app
+#       - /app/node_modules
+#     depends_on:
+#       - redis
+#     restart: always
+#     networks:
+#       - judge-net-local
+
+# # Define the network for the services to communicate with each other.
+# networks:
+#   judge-net-local:
+#     driver: bridge
+
+# # Define the volume for persistent Redis data.
+# volumes:
+#   redis-data-local:
