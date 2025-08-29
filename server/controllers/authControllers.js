@@ -86,7 +86,7 @@ export const forgotPassword = async (req, res) => {
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
         const html = `
-            <p>Hello,</p>
+            <p>Hello, ${user.username}</p>
             <p>You requested to reset your password. Click the link below to reset it:</p>
             <p><a href="${resetUrl}">${resetUrl}</a></p>
             <p>This link will expire in 30 minutes.</p>

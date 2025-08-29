@@ -1,20 +1,19 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-    service : 'gmail',
-    auth : {
-        user : process.env.NODEMAILER_USER,
-        pass : process.env.NODEMAILER_APP_PASSWORD
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendEmail = async({to, subject, html}) => {
-    const mailOptions = {
-        from : `"codeSphere", <${process.env.NODEMAILER_USER}>`,
-        to,
-        subject,
-        html
-    };
-
-    return await transporter.sendMail(mailOptions);
-}
+export const sendEmail = async ({ to, subject, html }) => {
+  try {
+    const response = await resend.emails.send({
+      from: "codeSphere <no-reply@code-sphere.dev>",
+      to,
+      subject,
+      html,
+    });
+    // console.log(response);
+    return response;
+  } catch (error) {
+    console.error("Resend email error:", error);
+    throw new Error("Failed to send email");
+  }
+};

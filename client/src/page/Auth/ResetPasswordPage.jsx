@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import Input from "../../components/Input";
+import { Loader2 } from "lucide-react";
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -12,14 +13,17 @@ const ResetPasswordPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("");
     setError("");
+    setLoading(true);
 
     if (!token) {
       setError("Reset token is missing.");
+      setLoading(false);
       return;
     }
 
@@ -30,9 +34,11 @@ const ResetPasswordPage = () => {
       });
       console.log(res);
       setStatus(res.data.message || "Password reset successful!");
-      setTimeout(() => navigate("/login"), 2500);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(err?.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,8 +52,12 @@ const ResetPasswordPage = () => {
           Enter a new password to reset your account.
         </p>
 
-        {status && <p className="text-green-500 text-sm mt-4 text-center">{status}</p>}
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+        {status && (
+          <p className="text-green-500 text-sm mt-4 text-center">{status}</p>
+        )}
+        {error && (
+          <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <Input
@@ -62,9 +72,20 @@ const ResetPasswordPage = () => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
+            disabled={loading}
+            className={`w-full py-2 flex items-center justify-center gap-2 rounded-md font-medium transition-colors ${
+              loading
+                ? "bg-indigo-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+            }`}
           >
-            Reset Password
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" /> Resetting...
+              </>
+            ) : (
+              "Reset Password"
+            )}
           </button>
         </form>
 

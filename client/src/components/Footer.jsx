@@ -7,7 +7,7 @@ const Footer = () => (
       <div className="mt-4 flex justify-center gap-6 text-sm">
         <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors duration-200">Privacy</a>
         <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors duration-200">Terms</a>
-        <a href="mailto:rade47.com@gmail.com" className="text-gray-300 hover:text-blue-400 transition-colors duration-200">Contact</a> 
+        <a href="mailto:support@code-shere.dev" className="text-gray-300 hover:text-blue-400 transition-colors duration-200">Contact</a> 
         {/* add visited count here */}
       </div>
     </div>

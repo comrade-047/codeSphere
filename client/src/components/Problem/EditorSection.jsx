@@ -31,11 +31,31 @@ const EditorSection = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("solution");
 
+  const [editorTheme, setEditorTheme] = useState("vs-light");
+
   useEffect(() => {
     if (readOnlysubmission) {
       setActiveTab("readonly");
     }
   }, [readOnlysubmission]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setEditorTheme(savedTheme === "dark" ? "vs-dark" : "vs-light");
+
+    const observer = new MutationObserver(() => {
+      const currentTheme =
+        document.documentElement.getAttribute("data-theme") || "light";
+      setEditorTheme(currentTheme === "dark" ? "vs-dark" : "vs-light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const requireLogin = () => {
     if (!user) {
@@ -117,7 +137,7 @@ const EditorSection = ({
             language={language}
             value={code}
             onChange={(val) => setCode(val || "")}
-            theme="vs-dark"
+            theme={editorTheme} 
             height="100%"
             options={{
               fontSize: 14,
@@ -131,7 +151,7 @@ const EditorSection = ({
           <Editor
             language={readOnlysubmission.languages}
             value={readOnlysubmission.code}
-            theme="vs-dark"
+            theme={editorTheme} 
             height="100%"
             options={{
               fontSize: 14,
@@ -185,7 +205,7 @@ const EditorSection = ({
           </>
         )}
       </div>
-      
+
       {aiReviewModal?.open && (
         <Modal
           setAiReviewModal={setAiReviewModal}
